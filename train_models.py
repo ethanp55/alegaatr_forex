@@ -1,10 +1,13 @@
 from data.data_loader import DataLoader
+from models.arima import Arima
 from models.arima_lstm import ArimaLSTM
+from models.lstm import Lstm
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
 def train_models() -> None:
-    # We have data for different currency pairs and time frames (for comparison/test purposes); train each model on each dataset
+    # We have data for different currency pairs and time frames (for comparison/test purposes); train each model on
+    # each dataset
     for time_frame in TIME_FRAMES:
         for currency_pair in CURRENCY_PAIRS:
             # String that represents the combination of the current currency pair and time frame
@@ -20,7 +23,9 @@ def train_models() -> None:
                 data_file, pips_multiplier)
 
             # Models we want to train
-            models = [ArimaLSTM(f'ArimaLSTM_{pair_time_frame_str}')]
+            # models = [ArimaLSTM(f'ArimaLSTM_{pair_time_frame_str}')]
+            # models = [Arima(f'Arima_{pair_time_frame_str}')]
+            models = [Lstm(f'LSTM_{pair_time_frame_str}')]
 
             # Train each model
             for model in models:

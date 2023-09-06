@@ -1,5 +1,4 @@
 import pickle
-
 import numpy as np
 import pandas as pd
 import pmdarima as pm
@@ -7,17 +6,17 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Dense, Dropout, LSTM, BatchNormalization
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
-
 from models.model import Model
 
 
 class ArimaLSTM(Model):
-    def __init__(self, name: str, arima_train_percentage=0.5, lstm_training_set_percentage=0.8, lookback=50) -> None:
+    def __init__(self, name: str, arima_train_percentage=0.5, lstm_training_set_percentage=0.8, lookback=100) -> None:
         super().__init__(name)
         self.arima_train_percentage = arima_train_percentage
         self.lstm_training_set_percentage = lstm_training_set_percentage
         self.lookback = lookback
-        self.arima_bid_pips_down, self.arima_bid_pips_up, self.arima_ask_pips_down, self.arima_ask_pips_up = None, None, None, None
+        self.arima_bid_pips_down, self.arima_bid_pips_up, self.arima_ask_pips_down, self.arima_ask_pips_up = \
+            None, None, None, None
         self.prediction_buffer_size = 0
 
     def train(self, df: pd.DataFrame) -> None:
@@ -25,8 +24,7 @@ class ArimaLSTM(Model):
         arima_train_cutoff_index = int(
             len(df) * self.arima_train_percentage)
 
-        df_train_arima, df_train_lstm = df.iloc[:arima_train_cutoff_index,
-                                        :], df.iloc[arima_train_cutoff_index:, :]
+        df_train_arima, df_train_lstm = df.iloc[:arima_train_cutoff_index, :], df.iloc[arima_train_cutoff_index:, :]
         df_train_arima.reset_index(drop=True, inplace=True)
         df_train_lstm.reset_index(drop=True, inplace=True)
 
@@ -56,7 +54,8 @@ class ArimaLSTM(Model):
             pickle.dump(self.arima_ask_pips_up, f)
 
         num_lstm_data_points = len(df_train_lstm)
-        self.prediction_buffer_size = num_lstm_data_points  # When we make predictions on the test data, we want to pad the predictions
+        self.prediction_buffer_size = num_lstm_data_points  # When we make predictions on the test data, we want to
+        # pad the predictions
 
         with open(f'./models/model_files/{self.name}_prediction_buffer_size.pickle', 'wb') as f:
             pickle.dump(self.prediction_buffer_size, f)
@@ -72,14 +71,10 @@ class ArimaLSTM(Model):
             n_periods=num_lstm_data_points)
 
         # Calculate the ARIMA errors
-        arima_bid_pips_down_errors = df_train_lstm['bid_pips_down'] - \
-                                     arima_bid_pips_down_pred.reset_index(drop=True)
-        arima_bid_pips_up_errors = df_train_lstm['bid_pips_up'] - \
-                                   arima_bid_pips_up_pred.reset_index(drop=True)
-        arima_ask_pips_down_errors = df_train_lstm['ask_pips_down'] - \
-                                     arima_ask_pips_down_pred.reset_index(drop=True)
-        arima_ask_pips_up_errors = df_train_lstm['ask_pips_up'] - \
-                                   arima_ask_pips_up_pred.reset_index(drop=True)
+        arima_bid_pips_down_errors = df_train_lstm['bid_pips_down'] - arima_bid_pips_down_pred.reset_index(drop=True)
+        arima_bid_pips_up_errors = df_train_lstm['bid_pips_up'] - arima_bid_pips_up_pred.reset_index(drop=True)
+        arima_ask_pips_down_errors = df_train_lstm['ask_pips_down'] - arima_ask_pips_down_pred.reset_index(drop=True)
+        arima_ask_pips_up_errors = df_train_lstm['ask_pips_up'] - arima_ask_pips_up_pred.reset_index(drop=True)
 
         assert len(arima_bid_pips_down_errors) == len(arima_bid_pips_up_errors) == len(
             arima_ask_pips_down_errors) == len(arima_ask_pips_up_errors) == num_lstm_data_points
@@ -101,18 +96,15 @@ class ArimaLSTM(Model):
 
         np.random.shuffle(lstm_training_data)
 
-        lstm_train_cutoff_index = int(len(lstm_training_data) *
-                                      self.lstm_training_set_percentage)
-        lstm_train_set, lstm_validation_set = lstm_training_data[
-                                              :lstm_train_cutoff_index], lstm_training_data[lstm_train_cutoff_index:]
+        lstm_train_cutoff_index = int(len(lstm_training_data) * self.lstm_training_set_percentage)
+        lstm_train_set, lstm_validation_set = lstm_training_data[:lstm_train_cutoff_index], \
+            lstm_training_data[lstm_train_cutoff_index:]
 
-        x_train, y_train = [], []
+        x_train, y_train, x_validation, y_validation = [], [], [], []
 
         for seq, target in lstm_train_set:
             x_train.append(seq)
             y_train.append(target)
-
-        x_validation, y_validation = [], []
 
         for seq, target in lstm_validation_set:
             x_validation.append(seq)
@@ -146,7 +138,7 @@ class ArimaLSTM(Model):
 
         lstm.add(Dense(4, activation='relu'))
 
-        n_epochs = 1000
+        n_epochs = 100
         batch_size = 32
         optimizer = Adam()
         lstm_file_path = f'./models/model_files/{self.name}_lstm'

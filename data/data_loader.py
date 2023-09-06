@@ -1,5 +1,5 @@
 import pandas as pd
-from utils.utils import TEST_START_DATE
+from utils.utils import OPTIMIZATION_START_DATE
 
 
 class DataLoader(object):
@@ -7,7 +7,7 @@ class DataLoader(object):
     def load_training_data(file_path: str, pips_multiplier: int) -> pd.DataFrame:
         df = pd.read_csv(file_path)
         df.Date = pd.to_datetime(df.Date, utc=True)
-        df = df.loc[df['Date'] < TEST_START_DATE]
+        df = df.loc[df['Date'] < OPTIMIZATION_START_DATE]
         df.reset_index(drop=True, inplace=True)
 
         # Create the labels (what we're trying to predict)
