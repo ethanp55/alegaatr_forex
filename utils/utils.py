@@ -1,0 +1,5 @@
+TEST_START_DATE = '2022-08-31 00:00:00'
+# CURRENCY_PAIRS = ['Eur_Usd', 'Gbp_Chf', 'Usd_Jpy']
+# TIME_FRAMES = ['M30', 'H1', 'H4']
+CURRENCY_PAIRS = ['Eur_Usd']
+TIME_FRAMES = ['H4']
