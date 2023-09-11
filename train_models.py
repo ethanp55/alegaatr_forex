@@ -2,6 +2,7 @@ from data.data_loader import DataLoader
 from models.arima import Arima
 from models.arima_lstm import ArimaLSTM
 from models.lstm import Lstm
+from models.lstm_mixture import LstmMixture
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
@@ -25,7 +26,8 @@ def train_models() -> None:
             # Models we want to train
             # models = [ArimaLSTM(f'ArimaLSTM_{pair_time_frame_str}')]
             # models = [Arima(f'Arima_{pair_time_frame_str}')]
-            models = [Lstm(f'LSTM_{pair_time_frame_str}')]
+            # models = [Lstm(f'LSTM_{pair_time_frame_str}')]
+            models = [LstmMixture(f'LstmMixture_{pair_time_frame_str}')]
 
             # Train each model
             for model in models:

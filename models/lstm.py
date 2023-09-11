@@ -17,38 +17,11 @@ class Lstm(Model):
         self.lookback = lookback
         self.scaler = None
 
-    def _format_input_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        formatted_df = df.copy()
-        formatted_df['rsi'] = TechnicalIndicators.rsi(formatted_df['Mid_Close'])
-        formatted_df['rsi_sma'] = formatted_df['rsi'].rolling(50).mean()
-        formatted_df['adx'] = TechnicalIndicators.adx(formatted_df['Mid_High'], formatted_df['Mid_Low'],
-                                                      formatted_df['Mid_Close'])
-        formatted_df['chop'] = TechnicalIndicators.chop(formatted_df)
-        formatted_df['vo'] = TechnicalIndicators.vo(formatted_df['Volume'])
-        formatted_df['qqe_up'], formatted_df['qqe_down'], formatted_df['qqe_val'] = \
-            TechnicalIndicators.qqe_mod(formatted_df['Mid_Close'])
-        formatted_df['rsi_up'] = formatted_df['rsi'] > formatted_df['rsi_sma']
-        formatted_df['adx_large'] = formatted_df['adx'] > 30
-        formatted_df['chop_small'] = formatted_df['chop'] < 0.5
-        formatted_df['vo_positive'] = formatted_df['vo'] > 0
-        formatted_df['squeeze_on'] = TechnicalIndicators.squeeze(formatted_df)
-        formatted_df['macd'] = pd.Series.ewm(formatted_df['Mid_Close'], span=12).mean() - \
-            pd.Series.ewm(formatted_df['Mid_Close'], span=26).mean()
-        formatted_df['macdsignal'] = pd.Series.ewm(formatted_df['macd'], span=9).mean()
-
-        formatted_df.dropna(inplace=True)
-        formatted_df.reset_index(drop=True, inplace=True)
-
-        formatted_df.drop(['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low',
-                           'Ask_Close', 'Mid_Open', 'Mid_High', 'Mid_Low', 'Mid_Close', 'Volume'], axis=1, inplace=True)
-
-        return formatted_df
-
     def train(self, df: pd.DataFrame) -> None:
         # Create formatted training data for the LSTM and separate it into training and validation sets
         print(f'Formatting LSTM training data for {self.name}...')
 
-        df_train = self._format_input_data(df)
+        df_train = TechnicalIndicators.format_data_for_ml_model(df)
         labels_df = df_train[['bid_pips_down', 'bid_pips_up', 'ask_pips_down', 'ask_pips_up']]
         assert len(df_train) == len(labels_df)
 
