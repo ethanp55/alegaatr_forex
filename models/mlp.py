@@ -3,20 +3,20 @@ import numpy as np
 import pandas as pd
 import pickle
 import random
-from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
 from utils.technical_indicators import TechnicalIndicators
 
 
-class KNN(Model):
+class MLP(Model):
     def __init__(self, name: str, training_set_percentage=0.8) -> None:
         super().__init__(name)
         self.training_set_percentage = training_set_percentage
-        self.knn, self.scaler = None, None
+        self.mlp, self.scaler = None, None
 
     def train(self, df: pd.DataFrame) -> None:
-        # Create formatted training data for the KNN model and separate it into training and validation sets
-        print(f'Formatting KNN training data for {self.name}...')
+        # Create formatted training data for the MLP and separate it into training and validation sets
+        print(f'Formatting MLP training data for {self.name}...')
 
         df_train = TechnicalIndicators.format_data_for_ml_model(df)
         labels_df = df_train[['bid_pips_down', 'bid_pips_up', 'ask_pips_down', 'ask_pips_up']]
@@ -59,19 +59,23 @@ class KNN(Model):
         # Try different hyperparameters
         all_combos = []
 
-        for n_neighbors in [3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 41, 51, 61, 71, 81, 91, 101, 125]:
-            for weights in ['uniform', 'distance']:
-                all_combos.append((n_neighbors, weights))
+        for hidden_layer_sizes in [(10), (25), (50), (100), (25, 50), (50, 100), (25, 25), (50, 50), (100, 100),
+                                   (25, 50, 25), (100, 150, 100)]:
+            for activation in ['tanh', 'relu', 'logistic']:
+                for solver in ['sgd', 'adam']:
+                    all_combos.append((hidden_layer_sizes, activation, solver))
 
-        n_runs = int(len(all_combos))
+        percentage_to_try = 0.25
+        n_runs = int(percentage_to_try * len(all_combos))
+        combos_to_try = random.sample(all_combos, n_runs)  # Perform a random search of the best hyperparameters
         best_validation_mse = np.inf
 
-        # Train the KNN model and choose the model with the best validation loss
+        # Train the MLP and choose the model with the best validation loss
         print(x_train.shape, y_train.shape, x_validation.shape, y_validation.shape)
         print(f'Num training runs for {self.name}: {n_runs}')
 
-        for n_neighbors, weights in all_combos:
-            curr_model = KNeighborsRegressor(n_neighbors=n_neighbors, weights=weights)
+        for hidden_layer_sizes, activation, solver in combos_to_try:
+            curr_model = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes, activation=activation, solver=solver)
             curr_model.fit(x_train, y_train)
 
             y_validation_pred = curr_model.predict(x_validation)
@@ -79,12 +83,15 @@ class KNN(Model):
 
             if validation_mse < best_validation_mse:
                 print(f'Best validation MSE improved from {best_validation_mse} to {validation_mse}')
-                best_validation_mse, self.knn = validation_mse, curr_model
+                best_validation_mse, self.mlp = validation_mse, curr_model
+
+                with open(f'./models/model_files/{self.name}_mlp.pickle', 'wb') as f:
+                    pickle.dump(self.mlp, f)
 
             n_runs -= 1
             print(f'Remaining runs: {n_runs} -- Best validation MSE so far: {best_validation_mse}')
 
-        # Save the best KNN
-        with open(f'./models/model_files/{self.name}_knn.pickle', 'wb') as f:
-            pickle.dump(self.knn, f)
+        # Save the best MLP
+        with open(f'./models/model_files/{self.name}_mlp.pickle', 'wb') as f:
+            pickle.dump(self.mlp, f)
 
