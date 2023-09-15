@@ -35,6 +35,19 @@ class TechnicalIndicators(object):
         return slow_k, slow_d
 
     @staticmethod
+    def stoch_rsi(rsi, k_window=3, d_window=3, window=14):
+        min_val = rsi.rolling(window=window, center=False).min()
+        max_val = rsi.rolling(window=window, center=False).max()
+
+        stoch = ((rsi - min_val) / (max_val - min_val)) * 100
+
+        slow_k = stoch.rolling(window=k_window, center=False).mean()
+
+        slow_d = slow_k.rolling(window=d_window, center=False).mean()
+
+        return slow_k, slow_d
+
+    @staticmethod
     def chop(df, lookback=14):
         atr1 = TechnicalIndicators.atr(df['Mid_High'], df['Mid_Low'], df['Mid_Close'], lookback=1)
         high, low = df['Mid_High'], df['Mid_Low']
@@ -290,6 +303,33 @@ class TechnicalIndicators(object):
         formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
         formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
 
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_macd_stochastic(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['macd'] = pd.Series.ewm(formatted_df['Mid_Close'], span=12).mean() - \
+                               pd.Series.ewm(formatted_df['Mid_Close'], span=26).mean()
+        formatted_df['macdsignal'] = pd.Series.ewm(formatted_df['macd'], span=9).mean()
+        formatted_df['n_macd'], formatted_df['n_macdsignal'] = TechnicalIndicators.n_macd(formatted_df)
+        formatted_df['impulse_macd'], formatted_df['impulse_macdsignal'] = TechnicalIndicators.impulse_macd(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['atr'] = TechnicalIndicators.atr(formatted_df['Mid_High'], formatted_df['Mid_Low'],
+                                                      formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        formatted_df['slowk'], formatted_df['slowd'] = TechnicalIndicators.stoch(formatted_df['Mid_High'],
+                                                                                 formatted_df['Mid_Low'],
+                                                                                 formatted_df['Mid_Close'])
+        rsi = TechnicalIndicators.rsi(df['Mid_Close'])
+        formatted_df['slowk_rsi'], formatted_df['slowd_rsi'] = TechnicalIndicators.stoch_rsi(rsi)
         formatted_df.dropna(inplace=True)
         formatted_df.reset_index(drop=True, inplace=True)
 
