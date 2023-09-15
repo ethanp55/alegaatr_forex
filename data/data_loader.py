@@ -1,5 +1,5 @@
 import pandas as pd
-from utils.utils import OPTIMIZATION_START_DATE
+from utils.utils import OPTIMIZATION_START_DATE, TEST_START_DATE
 
 
 class DataLoader(object):
@@ -19,5 +19,16 @@ class DataLoader(object):
             df['Ask_Open'] - df['Ask_Low']) * pips_multiplier
         df['ask_pips_up'] = abs(
             df['Ask_High'] - df['Ask_Open']) * pips_multiplier
+
+        return df
+
+    @staticmethod
+    def load_simulation_data(currency_pair: str, time_frame: str, optimize: bool,
+                             year_range: str = '2021-2023') -> pd.DataFrame:
+        df = pd.read_csv(f'../data/files/Oanda_{currency_pair}_{time_frame}_{year_range}.csv')
+        df.Date = pd.to_datetime(df.Date, utc=True)
+        df = df.loc[(df['Date'] >= OPTIMIZATION_START_DATE) & (df['Date'] < TEST_START_DATE)] if optimize else df.loc[
+            df['Date'] >= TEST_START_DATE]
+        df.reset_index(drop=True, inplace=True)
 
         return df

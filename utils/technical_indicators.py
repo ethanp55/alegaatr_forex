@@ -199,6 +199,52 @@ class TechnicalIndicators(object):
         return squeeze_on
 
     @staticmethod
+    def n_macd(df, short_len=12, long_len=21, signal_period=9, lookback=50):
+        sh, lon = pd.Series.ewm(df['Mid_Close'], span=short_len).mean(), pd.Series.ewm(df['Mid_Close'],
+                                                                                       span=long_len).mean()
+        ratio = np.minimum(sh, lon) / np.maximum(sh, lon)
+        macd = pd.Series(np.where(sh > lon, 2 - ratio, ratio) - 1)
+        n_macd = (macd - macd.rolling(lookback).min()) / (
+                macd.rolling(lookback).max() - macd.rolling(lookback).min() + 0.000001) * 2 - 1
+
+        weights = np.arange(1, signal_period + 1)
+        n_macdsignal = n_macd.rolling(window=signal_period).apply(lambda x: np.dot(x, weights) / weights.sum(),
+                                                                  raw=True)
+
+        return n_macd, n_macdsignal
+
+    @staticmethod
+    def smma(closes, length):
+        smma = []
+
+        for i in range(len(closes)):
+            if i < length:
+                smma.append(closes.iloc[:i + 1, ].rolling(length).mean().iloc[-1,])
+
+            else:
+                smma.append((smma[i - 1] * (length - 1) + closes[i]) / length)
+
+        return pd.Series(smma)
+
+    @staticmethod
+    def impulse_macd(high, low, close, ma_len=34, signal_period=9):
+        def _calc_zlema(series, length):
+            ema1 = pd.Series.ewm(series, span=length).mean()
+            ema2 = pd.Series.ewm(ema1, span=length).mean()
+            diff = ema1 - ema2
+
+            return ema1 + diff
+
+        hlc3 = (high + low + close) / 3
+        hi = TechnicalIndicators.smma(high, ma_len)
+        lo = TechnicalIndicators.smma(low, ma_len)
+        mi = _calc_zlema(hlc3, ma_len)
+        md = np.where(mi > hi, mi - hi, np.where(mi < lo, mi - lo, 0))
+        sb = pd.Series(md).rolling(signal_period).mean()
+
+        return md, sb
+
+    @staticmethod
     def format_data_for_ml_model(df: pd.DataFrame) -> pd.DataFrame:
         formatted_df = df.copy()
         formatted_df['rsi'] = TechnicalIndicators.rsi(formatted_df['Mid_Close'])
@@ -215,7 +261,7 @@ class TechnicalIndicators(object):
         formatted_df['vo_positive'] = formatted_df['vo'] > 0
         formatted_df['squeeze_on'] = TechnicalIndicators.squeeze(formatted_df)
         formatted_df['macd'] = pd.Series.ewm(formatted_df['Mid_Close'], span=12).mean() - \
-            pd.Series.ewm(formatted_df['Mid_Close'], span=26).mean()
+                               pd.Series.ewm(formatted_df['Mid_Close'], span=26).mean()
         formatted_df['macdsignal'] = pd.Series.ewm(formatted_df['macd'], span=9).mean()
 
         formatted_df.dropna(inplace=True)
@@ -223,5 +269,28 @@ class TechnicalIndicators(object):
 
         formatted_df.drop(['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low',
                            'Ask_Close', 'Mid_Open', 'Mid_High', 'Mid_Low', 'Mid_Close', 'Volume'], axis=1, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_macd(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['macd'] = pd.Series.ewm(formatted_df['Mid_Close'], span=12).mean() - \
+                               pd.Series.ewm(formatted_df['Mid_Close'], span=26).mean()
+        formatted_df['macdsignal'] = pd.Series.ewm(formatted_df['macd'], span=9).mean()
+        formatted_df['n_macd'], formatted_df['n_macdsignal'] = TechnicalIndicators.n_macd(formatted_df)
+        formatted_df['impulse_macd'], formatted_df['impulse_macdsignal'] = TechnicalIndicators.impulse_macd(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['atr'] = TechnicalIndicators.atr(formatted_df['Mid_High'], formatted_df['Mid_Low'],
+                                                      formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
 
         return formatted_df
