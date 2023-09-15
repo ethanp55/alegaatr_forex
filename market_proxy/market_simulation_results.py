@@ -17,6 +17,23 @@ class MarketSimulationResults:
     lowest_account_balance: float
     highest_account_balance: float
     account_balance: float
+    _curr_win_streak: int
+    _curr_loss_streak: int
+
+    # Helper function to update the simulation results once a trade closes out
+    def update_results(self, trade_amount: float, day_fees: float) -> None:
+        self.reward += trade_amount
+        self.day_fees += day_fees
+        self.net_reward += trade_amount + day_fees
+        self.account_balance += trade_amount + day_fees
+        self.lowest_account_balance = min(self.lowest_account_balance, self.account_balance)
+        self.highest_account_balance = max(self.highest_account_balance, self.account_balance)
+        self.n_wins += 1 if trade_amount > 0 else 0
+        self.n_losses += 1 if trade_amount < 0 else 0
+        self._curr_win_streak = 0 if trade_amount <= 0 else self._curr_win_streak + 1
+        self._curr_loss_streak = 0 if trade_amount >= 0 else self._curr_loss_streak + 1
+        self.longest_win_streak = max(self.longest_win_streak, self._curr_win_streak)
+        self.longest_loss_streak = max(self.longest_loss_streak, self._curr_loss_streak)
 
     def __str__(self):
         return f'RESULTS:\nreward = {self.reward}\nday fees = {self.day_fees}\nnet reward = {self.net_reward}' \

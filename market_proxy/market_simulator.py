@@ -2,9 +2,10 @@ from datetime import datetime
 from pandas import DataFrame
 from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
-from market_proxy.trade import TradeType
+from market_proxy.trade import Trade, TradeType
 import numpy as np
 from strategy.strategy import Strategy
+from typing import Optional
 
 
 class MarketSimulator(object):
@@ -13,37 +14,15 @@ class MarketSimulator(object):
                        starting_balance: float = 10000.0) -> MarketSimulationResults:
         # Numerical results we keep track of
         simulation_results = MarketSimulationResults(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, starting_balance, starting_balance,
-                                                     starting_balance, starting_balance)
-        curr_win_streak, curr_loss_streak = 0, 0
-        pips_risked, trade = [], None
+                                                     starting_balance, starting_balance, 0, 0)
+        pips_risked, curr_trade = [], None
         i = strategy.starting_idx
 
         # Format the strategy data (each strategy has specific indicators it uses)
         strategy_data = strategy.data_format_function(strategy_data_raw.copy())
 
-        # Helper function to update the simulation results once a trade closes out
-        def _update_simulation_results(trade_amount: float, day_fees: float) -> None:
-            nonlocal curr_win_streak, curr_loss_streak
-
-            simulation_results.reward += trade_amount
-            simulation_results.day_fees += day_fees
-            simulation_results.net_reward += trade_amount + day_fees
-            simulation_results.account_balance += trade_amount + day_fees
-            simulation_results.lowest_account_balance = min(simulation_results.lowest_account_balance,
-                                                            simulation_results.account_balance)
-            simulation_results.highest_account_balance = max(simulation_results.highest_account_balance,
-                                                             simulation_results.account_balance)
-            simulation_results.n_wins += 1 if trade_amount > 0 else 0
-            simulation_results.n_losses += 1 if trade_amount < 0 else 0
-            curr_win_streak = 0 if trade_amount <= 0 else curr_win_streak + 1
-            curr_loss_streak = 0 if trade_amount >= 0 else curr_loss_streak + 1
-            simulation_results.longest_win_streak = max(simulation_results.longest_win_streak, curr_win_streak)
-            simulation_results.longest_loss_streak = max(simulation_results.longest_loss_streak, curr_loss_streak)
-
         # Helper function for iterating through a trade on the smaller (5 minute) time frame
-        def _iterate_through_trade():
-            nonlocal trade
-
+        def _iterate_through_trade(trade: Trade) -> Optional[datetime]:
             market_data = market_data_raw.loc[market_data_raw['Date'] >= trade.start_date]
             market_data.reset_index(drop=True, inplace=True)
 
@@ -56,52 +35,47 @@ class MarketSimulator(object):
 
                 # Condition 1 - trade is a buy and the stop loss is hit
                 if trade.trade_type == TradeType.BUY and curr_bid_low <= trade.stop_loss:
-                    trade.end_date = curr_date
                     trade_amount = (trade.stop_loss - trade.open_price) * trade.n_units
-                    day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair)
-                    _update_simulation_results(trade_amount, day_fees)
-
-                    trade = None
+                    day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
+                    simulation_results.update_results(trade_amount, day_fees)
 
                     return curr_date
 
                 # Condition 2 - Trade is a buy and the take profit/stop gain is hit
                 if trade.trade_type == TradeType.BUY and trade.stop_gain is not None and \
                         curr_bid_high >= trade.stop_gain:
-                    trade.end_date = curr_date
                     trade_amount = (trade.stop_gain - trade.open_price) * trade.n_units
-                    day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair)
-                    _update_simulation_results(trade_amount, day_fees)
-
-                    trade = None
+                    day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
+                    simulation_results.update_results(trade_amount, day_fees)
 
                     return curr_date
 
                 # Condition 3 - trade is a sell and the stop loss is hit
                 if trade.trade_type == TradeType.SELL and curr_ask_high >= trade.stop_loss:
-                    trade.end_date = curr_date
                     trade_amount = (trade.open_price - trade.stop_loss) * trade.n_units
-                    day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair)
-                    _update_simulation_results(trade_amount, day_fees)
-
-                    trade = None
+                    day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
+                    simulation_results.update_results(trade_amount, day_fees)
 
                     return curr_date
 
                 # Condition 4 - Trade is a sell and the take profit/stop gain is hit
                 if trade.trade_type == TradeType.SELL and trade.stop_gain is not None and \
                         curr_ask_low <= trade.stop_gain:
-                    trade.end_date = curr_date
                     trade_amount = (trade.open_price - trade.stop_gain) * trade.n_units
-                    day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair)
-                    _update_simulation_results(trade_amount, day_fees)
-
-                    trade = None
+                    day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
+                    simulation_results.update_results(trade_amount, day_fees)
 
                     return curr_date
 
                 # Check if the strategy decides to move the stop loss - the trade may or may not change
                 trade = strategy.move_stop_loss(j, market_data, trade)
+
+                # Check if the strategy decides to close part of the trade - the trade may or may not change, and it
+                # might close out completely
+                trade = strategy.close_part_of_trade(j, market_data, trade, simulation_results, currency_pair)
+
+                if trade is None:
+                    return curr_date
 
             # If we get to the end of the smaller data frame without returning, that means the simulation is done
             return None
@@ -109,27 +83,28 @@ class MarketSimulator(object):
         # Iterate through the strategy data (either on the H4, H1, or M30 time frames)
         while i < len(strategy_data):
             # If there is no open trade, check to see if we should place one
-            if trade is None:
-                trade = strategy.place_trade(i, strategy_data, currency_pair, simulation_results.account_balance)
+            if curr_trade is None:
+                curr_trade = strategy.place_trade(i, strategy_data, currency_pair, simulation_results.account_balance)
 
             # If a trade was placed, update the simulation results and iterate through the smaller (5-minute) market
             # data to simulate the trade
-            if trade is not None:
+            if curr_trade is not None:
                 # Update the pips risked array
-                pips_risked.append(trade.pips_risked)
+                pips_risked.append(curr_trade.pips_risked)
 
                 # Update the corresponding trade type count
-                if trade.trade_type == TradeType.BUY:
+                if curr_trade.trade_type == TradeType.BUY:
                     simulation_results.n_buys += 1
 
-                elif trade.trade_type == TradeType.SELL:
+                elif curr_trade.trade_type == TradeType.SELL:
                     simulation_results.n_sells += 1
 
                 else:
-                    raise Exception(f'Invalid trade type on the following trade: {trade}')
+                    raise Exception(f'Invalid trade type on the following trade: {curr_trade}')
 
                 # Iterate through the 5-minute data to simulate the trade
-                trade_end_date = _iterate_through_trade()
+                trade_end_date = _iterate_through_trade(curr_trade)
+                curr_trade = None
 
                 # If the end date is null, that means we reached the end of the smaller market data, so the simulation
                 # is over (so we should break out of the while loop)

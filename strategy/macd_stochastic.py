@@ -1,7 +1,8 @@
 from market_proxy.market_calculations import MarketCalculations
+from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
-from strategy.strategy import basic_tsl, Strategy
+from strategy.strategy import Strategy
 from typing import Callable, Optional, Tuple
 from utils.technical_indicators import TechnicalIndicators
 
@@ -14,12 +15,12 @@ class MACDStochastic(Strategy):
                  macd_threshold: float = 0.0, invert: bool = False, use_tsl: bool = False,
                  pips_to_risk: Optional[int] = 50, pips_to_risk_atr_multiplier: float = 5.0,
                  risk_reward_ratio: Optional[float] = 1.5, stochastic_lookback: int = 12,
-                 use_stochastic_rsi: bool = False) -> None:
+                 use_stochastic_rsi: bool = False, close_trade_incrementally: bool = False) -> None:
         super().__init__(starting_idx, data_format_function, percent_to_risk)
         self.macd_type, self.ma_key, self.macd_threshold, self.invert, self.use_tsl, self.pips_to_risk, \
-        self.pips_to_risk_atr_multiplier, self.risk_reward_ratio, self.stochastic_lookback, self.use_stochastic_rsi = macd_type, ma_key, macd_threshold, invert, use_tsl, \
-                                                                                                                      pips_to_risk, pips_to_risk_atr_multiplier, \
-                                                                                                                      risk_reward_ratio, stochastic_lookback, use_stochastic_rsi
+        self.pips_to_risk_atr_multiplier, self.risk_reward_ratio, self.stochastic_lookback, self.use_stochastic_rsi, \
+        self.close_trade_incrementally = macd_type, ma_key, macd_threshold, invert, use_tsl, pips_to_risk, pips_to_risk_atr_multiplier, \
+                                         risk_reward_ratio, stochastic_lookback, use_stochastic_rsi, close_trade_incrementally
         self.starting_idx = self.stochastic_lookback  # Make sure we at least start at the lookback value
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
@@ -92,7 +93,7 @@ class MACDStochastic(Strategy):
                     stop_gain = None if self.risk_reward_ratio is None else open_price + (
                             sl_pips * self.risk_reward_ratio)
 
-                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date, None)
+                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date)
 
             elif sell_signal:
                 open_price = curr_bo
@@ -106,13 +107,21 @@ class MACDStochastic(Strategy):
                     stop_gain = None if self.risk_reward_ratio is None else open_price - (
                             sl_pips * self.risk_reward_ratio)
 
-                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date, None)
+                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date)
 
         return None
 
     def move_stop_loss(self, curr_idx: int, market_data: DataFrame, trade: Trade) -> Trade:
         if self.use_tsl:
-            return basic_tsl(curr_idx, market_data, trade)
+            return super().move_stop_loss(curr_idx, market_data, trade)
+
+        else:
+            return trade
+
+    def close_part_of_trade(self, curr_idx: int, market_data: DataFrame, trade: Trade,
+                            simulation_results: MarketSimulationResults, currency_pair: str) -> Optional[Trade]:
+        if self.close_trade_incrementally:
+            return super().close_part_of_trade(curr_idx, market_data, trade, simulation_results, currency_pair)
 
         else:
             return trade

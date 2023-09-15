@@ -1,12 +1,13 @@
+from datetime import datetime
 from market_proxy.trade import TradeType, Trade
 import numpy as np
 
 
 class MarketCalculations(object):
     @staticmethod
-    def calculate_day_fees(trade: Trade, currency_pair: str) -> float:
+    def calculate_day_fees(trade: Trade, currency_pair: str, end_date: datetime) -> float:
         amounts_per_day = [-0.008, -0.01, -0.012] if 'Jpy' in currency_pair else [-0.00008, -0.0001, -0.00012]
-        start_date, end_date, n_units = trade.start_date, trade.end_date, trade.n_units
+        start_date, n_units = trade.start_date, trade.n_units
         curr_fee = np.random.choice(amounts_per_day, p=[0.25, 0.50, 0.25]) * n_units
         num_days = np.busday_count(start_date.date(), end_date.date())
 

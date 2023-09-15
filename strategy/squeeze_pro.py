@@ -1,7 +1,8 @@
 from market_proxy.market_calculations import MarketCalculations
+from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
-from strategy.strategy import basic_tsl, Strategy
+from strategy.strategy import Strategy
 from typing import Callable, Optional
 from utils.technical_indicators import TechnicalIndicators
 
@@ -13,11 +14,12 @@ class SqueezePro(Strategy):
                  percent_to_risk: float = 0.02, n_reds: int = 3, ma_key: Optional[str] = 'smma200',
                  invert: bool = False, use_tsl: bool = False,
                  pips_to_risk: Optional[int] = 50, pips_to_risk_atr_multiplier: float = 2.0,
-                 risk_reward_ratio: Optional[float] = 1.5, lookback: int = 50) -> None:
+                 risk_reward_ratio: Optional[float] = 1.5, lookback: int = 50,
+                 close_trade_incrementally: bool = False) -> None:
         super().__init__(starting_idx, data_format_function, percent_to_risk)
         self.n_reds, self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
-        self.risk_reward_ratio, self.lookback = n_reds, ma_key, invert, use_tsl, pips_to_risk, \
-                                                pips_to_risk_atr_multiplier, risk_reward_ratio, lookback
+        self.risk_reward_ratio, self.lookback, self.close_trade_incrementally = n_reds, ma_key, invert, use_tsl, pips_to_risk, \
+                                                                                pips_to_risk_atr_multiplier, risk_reward_ratio, lookback, close_trade_incrementally
         self.bullish_momentum_colors, self.bearish_momentum_colors = {'aqua', 'blue'}, {'red', 'yellow'}
         self.starting_idx = self.lookback + 2  # Make sure we start at the proper value
 
@@ -92,7 +94,7 @@ class SqueezePro(Strategy):
                     stop_gain = None if self.risk_reward_ratio is None else open_price + (
                             sl_pips * self.risk_reward_ratio)
 
-                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date, None)
+                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date)
 
             elif sell_signal:
                 open_price = curr_bo
@@ -108,13 +110,21 @@ class SqueezePro(Strategy):
                     stop_gain = None if self.risk_reward_ratio is None else open_price - (
                             sl_pips * self.risk_reward_ratio)
 
-                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date, None)
+                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date)
 
         return None
 
     def move_stop_loss(self, curr_idx: int, market_data: DataFrame, trade: Trade) -> Trade:
         if self.use_tsl:
-            return basic_tsl(curr_idx, market_data, trade)
+            return super().move_stop_loss(curr_idx, market_data, trade)
+
+        else:
+            return trade
+
+    def close_part_of_trade(self, curr_idx: int, market_data: DataFrame, trade: Trade,
+                            simulation_results: MarketSimulationResults, currency_pair: str) -> Optional[Trade]:
+        if self.close_trade_incrementally:
+            return super().close_part_of_trade(curr_idx, market_data, trade, simulation_results, currency_pair)
 
         else:
             return trade

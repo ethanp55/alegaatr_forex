@@ -18,4 +18,3 @@ class Trade:
     n_units: int
     pips_risked: float
     start_date: datetime
-    end_date: Optional[datetime]
