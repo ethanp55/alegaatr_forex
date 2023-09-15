@@ -212,6 +212,50 @@ class TechnicalIndicators(object):
         return squeeze_on
 
     @staticmethod
+    def squeeze_pro(barsdata, length=20, length_kc=20, bb_mult=2.0, kc_mult_high=1.0, kc_mult_mid=1.5, kc_mult_low=2.0):
+        # Bollinger bands
+        m_avg = barsdata['Mid_Close'].rolling(window=length).mean()
+        m_std = barsdata['Mid_Close'].rolling(window=length).std(ddof=0)
+        bb_upper = m_avg + bb_mult * m_std
+        bb_lower = m_avg - bb_mult * m_std
+
+        # Keltner channel
+        tr0 = abs(barsdata['Mid_High'] - barsdata['Mid_Low'])
+        tr1 = abs(barsdata['Mid_High'] - barsdata['Mid_Close'].shift())
+        tr2 = abs(barsdata['Mid_Low'] - barsdata['Mid_Close'].shift())
+        tr = pd.concat([tr0, tr1, tr2], axis=1).max(axis=1)
+        range_ma = tr.rolling(window=length_kc).mean()
+        kc_upper_high = m_avg + range_ma * kc_mult_high
+        kc_lower_high = m_avg - range_ma * kc_mult_high
+        kc_upper_mid = m_avg + range_ma * kc_mult_mid
+        kc_lower_mid = m_avg - range_ma * kc_mult_mid
+        kc_upper_low = m_avg + range_ma * kc_mult_low
+        kc_lower_low = m_avg - range_ma * kc_mult_low
+
+        # Squeeze
+        low_squeeze = (bb_lower >= kc_lower_low) | (bb_upper <= kc_upper_low)  # Black
+        mid_squeeze = (bb_lower >= kc_lower_mid) | (bb_upper <= kc_upper_mid)  # Yellow
+        high_squeeze = (bb_lower >= kc_lower_high) | (bb_upper <= kc_upper_high)  # Red
+
+        squeeze_values = np.where(high_squeeze, 'red',
+                                  np.where(mid_squeeze, 'yellow', np.where(low_squeeze, 'black', 'green')))
+
+        # Momentum
+        highest_high = barsdata['Mid_High'].rolling(window=length).max()
+        lowest_low = barsdata['Mid_Low'].rolling(window=length).min()
+        avg_high_low = (highest_high + lowest_low) / 2
+        avg_avg_high_low_sma = (avg_high_low + m_avg) / 2
+        diff = barsdata['Mid_Close'] - avg_avg_high_low_sma
+        squeeze_momentum = diff.rolling(window=length).apply(
+            lambda x: np.polyfit(np.arange(length), x, 1)[0] * (length - 1) + np.polyfit(np.arange(length), x, 1)[1],
+            raw=True)
+        iff_1 = np.where(squeeze_momentum > squeeze_momentum.shift(), 'aqua', 'blue')
+        iff_2 = np.where(squeeze_momentum < squeeze_momentum.shift(), 'red', 'yellow')
+        squeeze_momentum_color = np.where(squeeze_momentum > 0, iff_1, iff_2)
+
+        return squeeze_values, squeeze_momentum_color
+
+    @staticmethod
     def n_macd(df, short_len=12, long_len=21, signal_period=9, lookback=50):
         sh, lon = pd.Series.ewm(df['Mid_Close'], span=short_len).mean(), pd.Series.ewm(df['Mid_Close'],
                                                                                        span=long_len).mean()
@@ -330,6 +374,42 @@ class TechnicalIndicators(object):
                                                                                  formatted_df['Mid_Close'])
         rsi = TechnicalIndicators.rsi(df['Mid_Close'])
         formatted_df['slowk_rsi'], formatted_df['slowd_rsi'] = TechnicalIndicators.stoch_rsi(rsi)
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_squeeze_pro(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['squeeze_value'], formatted_df['squeeze_momentum_color'] = TechnicalIndicators.squeeze_pro(
+            formatted_df)
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+    
+    @staticmethod
+    def format_data_for_ma_crossover(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+
         formatted_df.dropna(inplace=True)
         formatted_df.reset_index(drop=True, inplace=True)
 

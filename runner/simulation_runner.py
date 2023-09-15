@@ -13,7 +13,7 @@ class SimulationRunner(object):
 
         return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair)
 
-# from strategy.macd_stochastic import MACDStochastic
+# from strategy.ma_crossover import MACrossover
 #
-# results = SimulationRunner.run_simulation(MACDStochastic(), 'Eur_Usd', 'H4', True)
+# results = SimulationRunner.run_simulation(MACrossover(), 'Eur_Usd', 'M30', True)
 # print(results)
