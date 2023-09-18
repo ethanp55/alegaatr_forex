@@ -14,7 +14,7 @@ class SimulationRunner(object):
         return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair)
 
 
-from strategy.squeeze_pro import SqueezePro
+from strategy.keltner_channels import KeltnerChannels
 
-results = SimulationRunner.run_simulation(SqueezePro(close_trade_incrementally=True), 'Eur_Usd', 'M30', True)
+results = SimulationRunner.run_simulation(KeltnerChannels(close_trade_incrementally=True), 'Eur_Usd', 'M30', True)
 print(results)

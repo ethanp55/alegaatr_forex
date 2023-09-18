@@ -190,6 +190,28 @@ class TechnicalIndicators(object):
         return supertrend, final_upperband, final_lowerband
 
     @staticmethod
+    def bollinger_bands(barsdata, length=20, mult=2.0):
+        m_avg = barsdata['Mid_Close'].rolling(window=length).mean()
+        m_std = barsdata['Mid_Close'].rolling(window=length).std(ddof=0)
+        lower_bb = m_avg - mult * m_std
+        upper_bb = m_avg + mult * m_std
+
+        return lower_bb, upper_bb
+
+    @staticmethod
+    def keltner_channels(barsdata, length=20, mult=2.0):
+        tr0 = abs(barsdata['Mid_High'] - barsdata['Mid_Low'])
+        tr1 = abs(barsdata['Mid_High'] - barsdata['Mid_Close'].shift())
+        tr2 = abs(barsdata['Mid_Low'] - barsdata['Mid_Close'].shift())
+        tr = pd.concat([tr0, tr1, tr2], axis=1).max(axis=1)
+        range_ma = tr.rolling(window=length).mean()
+        m_avg = barsdata['Mid_Close'].rolling(window=length).mean()
+        upper_kc = m_avg + range_ma * mult
+        lower_kc = m_avg - range_ma * mult
+
+        return lower_kc, upper_kc
+
+    @staticmethod
     def squeeze(barsdata, length=20, length_kc=20, mult=1.5):
         # Bollinger bands
         m_avg = barsdata['Mid_Close'].rolling(window=length).mean()
@@ -397,7 +419,7 @@ class TechnicalIndicators(object):
         formatted_df.reset_index(drop=True, inplace=True)
 
         return formatted_df
-    
+
     @staticmethod
     def format_data_for_ma_crossover(df: pd.DataFrame) -> pd.DataFrame:
         formatted_df = df.copy()
@@ -410,6 +432,97 @@ class TechnicalIndicators(object):
         formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
         formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
 
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_rsi(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['rsi'] = TechnicalIndicators.rsi(formatted_df['Mid_Close'])
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_stochastic(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        formatted_df['slowk'], formatted_df['slowd'] = TechnicalIndicators.stoch(formatted_df['Mid_High'],
+                                                                                 formatted_df['Mid_Low'],
+                                                                                 formatted_df['Mid_Close'])
+        rsi = TechnicalIndicators.rsi(df['Mid_Close'])
+        formatted_df['slowk_rsi'], formatted_df['slowd_rsi'] = TechnicalIndicators.stoch_rsi(rsi)
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_supertrend(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        formatted_df['qqe_up'], formatted_df['qqe_down'], formatted_df['qqe_val'] = \
+            TechnicalIndicators.qqe_mod(formatted_df['Mid_Close'])
+        formatted_df['supertrend'], formatted_df['supertrend_ub'], formatted_df[
+            'supertrend_lb'] = TechnicalIndicators.supertrend(formatted_df)
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_bollinger_bands(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        formatted_df['lower_bb'], formatted_df['upper_bb'] = TechnicalIndicators.bollinger_bands(formatted_df)
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_keltner_channels(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        formatted_df['lower_kc'], formatted_df['upper_kc'] = TechnicalIndicators.keltner_channels(formatted_df)
         formatted_df.dropna(inplace=True)
         formatted_df.reset_index(drop=True, inplace=True)
 
