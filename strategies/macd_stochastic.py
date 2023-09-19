@@ -2,7 +2,7 @@ from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
-from strategy.strategy import Strategy
+from strategies.strategy import Strategy
 from typing import Callable, Optional, Tuple
 from utils.technical_indicators import TechnicalIndicators
 

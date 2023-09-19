@@ -2,35 +2,34 @@ from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
-from strategy.strategy import Strategy
+from strategies.strategy import Strategy
 from typing import Callable, Optional
 from utils.technical_indicators import TechnicalIndicators
 
 
-class PSAR(Strategy):
-    def __init__(self, starting_idx: int = 2,
-                 data_format_function: Callable[[DataFrame], DataFrame] = TechnicalIndicators.format_data_for_sar,
+class RSI(Strategy):
+    def __init__(self, starting_idx: int = 1,
+                 data_format_function: Callable[
+                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_rsi,
                  percent_to_risk: float = 0.02, ma_key: Optional[str] = 'smma200',
-                 invert: bool = False, use_tsl: bool = False,
-                 pips_to_risk: Optional[int] = 50, pips_to_risk_multiplier: float = 5.0,
-                 risk_reward_ratio: Optional[float] = 1.5, close_trade_incrementally: bool = False) -> None:
+                 invert: bool = False, use_tsl: bool = False, pips_to_risk: Optional[int] = 50,
+                 pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
+                 close_trade_incrementally: bool = False) -> None:
         super().__init__(starting_idx, data_format_function, percent_to_risk)
-        self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, \
-        self.pips_to_risk_multiplier, self.risk_reward_ratio, self.close_trade_incrementally = ma_key, invert, use_tsl, \
-                                                                                               pips_to_risk, pips_to_risk_multiplier, \
-                                                                                               risk_reward_ratio, close_trade_incrementally
+        self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
+        self.risk_reward_ratio, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
+                                                                 pips_to_risk_atr_multiplier, risk_reward_ratio, close_trade_incrementally
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
-        # Grab the needed values from the market data
-        sar2, mid_low2, mid_high2 = strategy_data.loc[strategy_data.index[curr_idx - 2], ['sar', 'Mid_Low', 'Mid_High']]
-        sar1, mid_low1, mid_high1, mid_close = strategy_data.loc[
-            strategy_data.index[curr_idx - 1], ['sar', 'Mid_Low', 'Mid_High', 'Mid_Close']]
+        # Grab the needed strategies values
+        rsi, lower_atr_band, upper_atr_band, mid_close = strategy_data.loc[
+            strategy_data.index[curr_idx - 1], ['rsi', 'lower_atr_band', 'upper_atr_band', 'Mid_Close']]
         ma = strategy_data.loc[strategy_data.index[curr_idx - 1], self.ma_key] if self.ma_key is not None else None
 
         # Determine if there is a buy or sell signal
-        buy_signal = sar2 > mid_high2 and sar1 < mid_low1 and (mid_close > ma if ma is not None else True)
-        sell_signal = sar2 < mid_low2 and sar1 > mid_high1 and (mid_close < ma if ma is not None else True)
+        buy_signal = rsi < 20 and (mid_close > ma if ma is not None else True)
+        sell_signal = rsi > 80 and (mid_close < ma if ma is not None else True)
 
         if self.invert:
             buy_signal, sell_signal = sell_signal, buy_signal
@@ -45,8 +44,8 @@ class PSAR(Strategy):
 
             if buy_signal:
                 open_price = curr_ao
-                sl_pips = pips_to_risk if pips_to_risk is not None else (open_price - sar1) * \
-                                                                        self.pips_to_risk_multiplier
+                sl_pips = pips_to_risk if pips_to_risk is not None else (open_price - lower_atr_band) * \
+                                                                        self.pips_to_risk_atr_multiplier
                 stop_loss = open_price - sl_pips
 
                 if stop_loss < open_price and spread <= sl_pips * 0.1:
@@ -61,8 +60,8 @@ class PSAR(Strategy):
 
             elif sell_signal:
                 open_price = curr_bo
-                sl_pips = pips_to_risk if pips_to_risk is not None else (sar1 - open_price) * \
-                                                                        self.pips_to_risk_multiplier
+                sl_pips = pips_to_risk if pips_to_risk is not None else (upper_atr_band - open_price) * \
+                                                                        self.pips_to_risk_atr_multiplier
                 stop_loss = open_price + sl_pips
 
                 if stop_loss > open_price and spread <= sl_pips * 0.1:

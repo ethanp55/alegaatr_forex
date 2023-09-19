@@ -2,40 +2,62 @@ from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
-from strategy.strategy import Strategy
+from strategies.strategy import Strategy
 from typing import Callable, Optional
 from utils.technical_indicators import TechnicalIndicators
 
 
-class Stochastic(Strategy):
+class BarMovement(Strategy):
     def __init__(self, starting_idx: int = 2,
                  data_format_function: Callable[
-                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_stochastic,
+                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_bar_movement,
                  percent_to_risk: float = 0.02, ma_key: Optional[str] = 'smma200',
                  invert: bool = False, use_tsl: bool = False, pips_to_risk: Optional[int] = 50,
                  pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
-                 use_stochastic_rsi: bool = False,
-                 close_trade_incrementally: bool = False) -> None:
+                 close_to_level_atr_multiplier: float = 1.0, pip_movement_atr_multiplier: float = 2.0,
+                 lookback: int = 12, close_trade_incrementally: bool = False) -> None:
         super().__init__(starting_idx, data_format_function, percent_to_risk)
         self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
-        self.risk_reward_ratio, self.use_stochastic_rsi, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
-                                                                                          pips_to_risk_atr_multiplier, risk_reward_ratio, use_stochastic_rsi, close_trade_incrementally
+        self.risk_reward_ratio, self.close_to_level_atr_multiplier, self.pip_movement_atr_multiplier, self.lookback, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
+                                                                                                                                                      pips_to_risk_atr_multiplier, risk_reward_ratio, close_to_level_atr_multiplier, pip_movement_atr_multiplier, lookback, close_trade_incrementally
+        self.starting_idx = self.lookback
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
-        # Grab the needed strategy values
-        slowk_key, slowd_key = ('slowk_rsi', 'slowd_rsi') if self.use_stochastic_rsi else ('slowk', 'slowd')
+        # Grab the needed strategies values
+        mid_opens = list(strategy_data.loc[strategy_data.index[curr_idx - self.lookback:curr_idx], 'Mid_Open'])
+        mid_closes = list(strategy_data.loc[strategy_data.index[curr_idx - self.lookback:curr_idx], 'Mid_Close'])
+        atrs = list(strategy_data.loc[strategy_data.index[curr_idx - self.lookback:curr_idx], 'atr'])
+        avg_atr = sum(atrs) / len(atrs)
 
-        slowk2, slowd2 = strategy_data.loc[strategy_data.index[curr_idx - 2], [slowk_key, slowd_key]]
-        slowk1, slowd1, lower_atr_band1, upper_atr_band1, mid_close1 = strategy_data.loc[
-            strategy_data.index[curr_idx - 1], [slowk_key, slowd_key, 'lower_atr_band', 'upper_atr_band', 'Mid_Close']]
+        atr1, lower_atr_band1, upper_atr_band1, mid_close1 = strategy_data.loc[
+            strategy_data.index[curr_idx - 1], ['atr', 'lower_atr_band', 'upper_atr_band', 'Mid_Close']]
         ma = strategy_data.loc[strategy_data.index[curr_idx - 1], self.ma_key] if self.ma_key is not None else None
+        pip_movement = avg_atr * self.pip_movement_atr_multiplier
+        pips_level_rounding = 0 if 'Jpy' in currency_pair else 2
 
         # Determine if there is a buy or sell signal
-        buy_signal = slowk2 < slowd2 and slowk1 > slowd1 and max([slowk2, slowd2, slowk1, slowd1]) < 20 and (
-            mid_close1 > ma if ma is not None else True)
-        sell_signal = slowk2 > slowd2 and slowk1 < slowd1 and min([slowk2, slowd2, slowk1, slowd1]) > 80 and (
-            mid_close1 < ma if ma is not None else True)
+        def _check_bars(buy: bool) -> bool:
+            pips_moved = 0
+
+            for j in range(len(mid_opens) - 1, -1, -1):
+                if (buy and mid_opens[j] < mid_closes[j]) or (not buy and mid_opens[j] > mid_closes[j]):
+                    pips_moved += abs(mid_opens[j] - mid_closes[j])
+
+                    if pips_moved >= pip_movement:
+                        return True
+
+                else:
+                    return False
+
+            return False
+
+        nearest_level = round(mid_close1, pips_level_rounding)
+        close_to_nearest_level = abs(mid_close1 - nearest_level) < atr1 * self.close_to_level_atr_multiplier
+
+        buy_signal = close_to_nearest_level and (mid_close1 > ma if ma is not None else True) and _check_bars(buy=True)
+        sell_signal = close_to_nearest_level and (mid_close1 < ma if ma is not None else True) and _check_bars(
+            buy=False)
 
         if self.invert:
             buy_signal, sell_signal = sell_signal, buy_signal

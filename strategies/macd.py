@@ -2,62 +2,46 @@ from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
-from strategy.strategy import Strategy
+from strategies.strategy import Strategy
 from typing import Callable, Optional
 from utils.technical_indicators import TechnicalIndicators
 
 
-class BarMovement(Strategy):
+class MACD(Strategy):
     def __init__(self, starting_idx: int = 2,
-                 data_format_function: Callable[
-                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_bar_movement,
-                 percent_to_risk: float = 0.02, ma_key: Optional[str] = 'smma200',
-                 invert: bool = False, use_tsl: bool = False, pips_to_risk: Optional[int] = 50,
-                 pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
-                 close_to_level_atr_multiplier: float = 1.0, pip_movement_atr_multiplier: float = 2.0,
-                 lookback: int = 12, close_trade_incrementally: bool = False) -> None:
+                 data_format_function: Callable[[DataFrame], DataFrame] = TechnicalIndicators.format_data_for_macd,
+                 percent_to_risk: float = 0.02, macd_type: str = 'macd', ma_key: Optional[str] = 'smma200',
+                 macd_threshold: float = 0.0, invert: bool = False, use_tsl: bool = False,
+                 pips_to_risk: Optional[int] = 50, pips_to_risk_atr_multiplier: float = 5.0,
+                 risk_reward_ratio: Optional[float] = 1.5, close_trade_incrementally: bool = False) -> None:
         super().__init__(starting_idx, data_format_function, percent_to_risk)
-        self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
-        self.risk_reward_ratio, self.close_to_level_atr_multiplier, self.pip_movement_atr_multiplier, self.lookback, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
-                                                                                                                                                      pips_to_risk_atr_multiplier, risk_reward_ratio, close_to_level_atr_multiplier, pip_movement_atr_multiplier, lookback, close_trade_incrementally
-        self.starting_idx = self.lookback
+        self.macd_type, self.ma_key, self.macd_threshold, self.invert, self.use_tsl, self.pips_to_risk, \
+        self.pips_to_risk_atr_multiplier, self.risk_reward_ratio, self.close_trade_incrementally = macd_type, ma_key, macd_threshold, invert, use_tsl, \
+                                                                                                   pips_to_risk, pips_to_risk_atr_multiplier, \
+                                                                                                   risk_reward_ratio, close_trade_incrementally
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
-        # Grab the needed strategy values
-        mid_opens = list(strategy_data.loc[strategy_data.index[curr_idx - self.lookback:curr_idx], 'Mid_Open'])
-        mid_closes = list(strategy_data.loc[strategy_data.index[curr_idx - self.lookback:curr_idx], 'Mid_Close'])
-        atrs = list(strategy_data.loc[strategy_data.index[curr_idx - self.lookback:curr_idx], 'atr'])
-        avg_atr = sum(atrs) / len(atrs)
+        # Determine which type of macd to use
+        macd_key, macdsignal_key = ('n_macd', 'n_macdsignal') if self.macd_type == 'n_macd' else (
+            ('impulse_macd', 'impulse_macdsignal') if self.macd_type == 'impulse_macd' else ('macd', 'macdsignal'))
 
-        atr1, lower_atr_band1, upper_atr_band1, mid_close1 = strategy_data.loc[
-            strategy_data.index[curr_idx - 1], ['atr', 'lower_atr_band', 'upper_atr_band', 'Mid_Close']]
+        # Grab the needed values from the market data
+        macd2, macdsignal2 = strategy_data.loc[strategy_data.index[curr_idx - 2], [macd_key, macdsignal_key]]
+        macd1, macdsignal1, atr, mid_close = strategy_data.loc[
+            strategy_data.index[curr_idx - 1], [macd_key, macdsignal_key, 'atr', 'Mid_Close']]
         ma = strategy_data.loc[strategy_data.index[curr_idx - 1], self.ma_key] if self.ma_key is not None else None
-        pip_movement = avg_atr * self.pip_movement_atr_multiplier
-        pips_level_rounding = 0 if 'Jpy' in currency_pair else 2
 
         # Determine if there is a buy or sell signal
-        def _check_bars(buy: bool) -> bool:
-            pips_moved = 0
+        crossed_up = macd2 < macdsignal2 and macd1 > macdsignal1 and max([macd2, macdsignal2, macd1, macdsignal1]) < 0
+        crossed_down = macd2 > macdsignal2 and macd1 < macdsignal1 and min([macd2, macdsignal2, macd1, macdsignal1]) > 0
+        macd_final_threshold = self.macd_threshold * atr if self.macd_type != 'n_macd' else self.macd_threshold
+        macd_large_enough = min([abs(macd1), abs(macdsignal1), abs(macd2), abs(macdsignal2)]) >= macd_final_threshold
+        buy_ma_condition_met = mid_close > ma if ma is not None else True
+        sell_ma_condition_met = mid_close < ma if ma is not None else True
 
-            for j in range(len(mid_opens) - 1, -1, -1):
-                if (buy and mid_opens[j] < mid_closes[j]) or (not buy and mid_opens[j] > mid_closes[j]):
-                    pips_moved += abs(mid_opens[j] - mid_closes[j])
-
-                    if pips_moved >= pip_movement:
-                        return True
-
-                else:
-                    return False
-
-            return False
-
-        nearest_level = round(mid_close1, pips_level_rounding)
-        close_to_nearest_level = abs(mid_close1 - nearest_level) < atr1 * self.close_to_level_atr_multiplier
-
-        buy_signal = close_to_nearest_level and (mid_close1 > ma if ma is not None else True) and _check_bars(buy=True)
-        sell_signal = close_to_nearest_level and (mid_close1 < ma if ma is not None else True) and _check_bars(
-            buy=False)
+        buy_signal = crossed_up and macd_large_enough and buy_ma_condition_met
+        sell_signal = crossed_down and macd_large_enough and sell_ma_condition_met
 
         if self.invert:
             buy_signal, sell_signal = sell_signal, buy_signal
@@ -69,11 +53,10 @@ class BarMovement(Strategy):
             spread = abs(curr_ao - curr_bo)
             divider = 100 if 'Jpy' in currency_pair else 10000
             pips_to_risk = self.pips_to_risk / divider if self.pips_to_risk is not None else None
+            sl_pips = pips_to_risk if pips_to_risk is not None else atr * self.pips_to_risk_atr_multiplier
 
             if buy_signal:
                 open_price = curr_ao
-                sl_pips = pips_to_risk if pips_to_risk is not None else (open_price - lower_atr_band1) * \
-                                                                        self.pips_to_risk_atr_multiplier
                 stop_loss = open_price - sl_pips
 
                 if stop_loss < open_price and spread <= sl_pips * 0.1:
@@ -88,8 +71,6 @@ class BarMovement(Strategy):
 
             elif sell_signal:
                 open_price = curr_bo
-                sl_pips = pips_to_risk if pips_to_risk is not None else (upper_atr_band1 - open_price) * \
-                                                                        self.pips_to_risk_atr_multiplier
                 stop_loss = open_price + sl_pips
 
                 if stop_loss > open_price and spread <= sl_pips * 0.1:

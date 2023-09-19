@@ -1,7 +1,7 @@
 from data.data_loader import DataLoader
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.market_simulator import MarketSimulator
-from strategy.strategy import Strategy
+from strategies.strategy import Strategy
 
 
 class SimulationRunner(object):
@@ -14,7 +14,7 @@ class SimulationRunner(object):
         return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair)
 
 
-from strategy.bar_movement import BarMovement
+from strategies.bar_movement import BarMovement
 
 results = SimulationRunner.run_simulation(BarMovement(close_trade_incrementally=True), 'Eur_Usd', 'M30', True)
 print(results)

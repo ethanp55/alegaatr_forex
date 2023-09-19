@@ -7,7 +7,7 @@ from market_proxy.market_simulation_results import MarketSimulationResults
 from typing import Callable, Optional
 
 
-# Abstract strategy class that each specific strategy must implement
+# Abstract strategies class that each specific strategies must implement
 class Strategy:
     def __init__(self, starting_idx: int, data_format_function: Callable[[DataFrame], DataFrame],
                  percent_to_risk: float) -> None:
@@ -15,12 +15,12 @@ class Strategy:
         self.data_format_function = data_format_function
         self.percent_to_risk = percent_to_risk
 
-    # Each strategy has unique rules to determine if a trade should be placed
+    # Each strategies has unique rules to determine if a trade should be placed
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
         pass
 
-    # A strategy might have rules to move the stop loss if the market moves in the trade's favor
+    # A strategies might have rules to move the stop loss if the market moves in the trade's favor
     def move_stop_loss(self, curr_idx: int, market_data: DataFrame, trade: Trade) -> Trade:
         trade_copy = copy(trade)
         curr_bid_high, curr_ask_low = market_data.loc[market_data.index[curr_idx], ['Bid_High', 'Ask_Low']]
@@ -34,7 +34,7 @@ class Strategy:
 
         return trade_copy
 
-    # A strategy might want to close part of the trade and move the stop loss after the market has moved a certain
+    # A strategies might want to close part of the trade and move the stop loss after the market has moved a certain
     # amount in the trade's favor
     def close_part_of_trade(self, curr_idx: int, market_data: DataFrame, trade: Trade,
                             simulation_results: MarketSimulationResults, currency_pair: str) -> Optional[Trade]:

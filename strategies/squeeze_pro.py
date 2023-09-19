@@ -2,35 +2,72 @@ from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
-from strategy.strategy import Strategy
+from strategies.strategy import Strategy
 from typing import Callable, Optional
 from utils.technical_indicators import TechnicalIndicators
 
 
-class BollingerBands(Strategy):
-    def __init__(self, starting_idx: int = 1,
+class SqueezePro(Strategy):
+    def __init__(self, starting_idx: int = 2,
                  data_format_function: Callable[
-                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_bollinger_bands,
-                 percent_to_risk: float = 0.02, ma_key: Optional[str] = 'smma200',
-                 invert: bool = False, use_tsl: bool = False, pips_to_risk: Optional[int] = 50,
-                 pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
+                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_squeeze_pro,
+                 percent_to_risk: float = 0.02, n_reds: int = 3, ma_key: Optional[str] = 'smma200',
+                 invert: bool = False, use_tsl: bool = False,
+                 pips_to_risk: Optional[int] = 50, pips_to_risk_atr_multiplier: float = 2.0,
+                 risk_reward_ratio: Optional[float] = 1.5, lookback: int = 50,
                  close_trade_incrementally: bool = False) -> None:
         super().__init__(starting_idx, data_format_function, percent_to_risk)
-        self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
-        self.risk_reward_ratio, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
-                                                                 pips_to_risk_atr_multiplier, risk_reward_ratio, close_trade_incrementally
+        self.n_reds, self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
+        self.risk_reward_ratio, self.lookback, self.close_trade_incrementally = n_reds, ma_key, invert, use_tsl, pips_to_risk, \
+                                                                                pips_to_risk_atr_multiplier, risk_reward_ratio, lookback, close_trade_incrementally
+        self.bullish_momentum_colors, self.bearish_momentum_colors = {'aqua', 'blue'}, {'red', 'yellow'}
+        self.starting_idx = self.lookback + 2  # Make sure we start at the proper value
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
-        # Grab the needed strategy values
-        lower_bb, upper_bb, lower_atr_band, upper_atr_band, mid_close = strategy_data.loc[
-            strategy_data.index[curr_idx - 1], ['lower_bb', 'upper_bb', 'lower_atr_band', 'upper_atr_band',
-                                                'Mid_Close']]
-        ma = strategy_data.loc[strategy_data.index[curr_idx - 1], self.ma_key] if self.ma_key is not None else None
+        # Checks to see if there was recent squeeze pressure in the market
+        def _recent_squeeze() -> bool:
+            max_lookback, start_idx = curr_idx - 2 - self.lookback, curr_idx - 2
+            num_reds_seen, end_of_green_idx = 0, start_idx
+
+            for j in range(start_idx, max_lookback, -1):
+                curr_squeeze_value = strategy_data.loc[strategy_data.index[j], 'squeeze_value']
+
+                if curr_squeeze_value == 'green':
+                    end_of_green_idx = j
+
+                else:
+                    break
+
+            for j in range(end_of_green_idx - 1, max_lookback, -1):
+                curr_squeeze_value = strategy_data.loc[strategy_data.index[j], 'squeeze_value']
+                num_reds_seen += 1 if curr_squeeze_value == 'red' else 0
+
+                if curr_squeeze_value == 'green':
+                    return False
+
+                if num_reds_seen >= self.n_reds:
+                    return True
+
+            return False
+
+        # Grab the needed strategies values
+        squeeze_value2 = strategy_data.loc[strategy_data.index[curr_idx - 2], 'squeeze_value']
+        squeeze_value1, squeeze_momentum_color1, mid_close1, lower_atr_band1, upper_atr_band1 = \
+            strategy_data.loc[
+                strategy_data.index[curr_idx - 1], ['squeeze_value', 'squeeze_momentum_color', 'Mid_Close',
+                                                    'lower_atr_band', 'upper_atr_band']]
 
         # Determine if there is a buy or sell signal
-        buy_signal = mid_close < lower_bb and (mid_close > ma if ma is not None else True)
-        sell_signal = mid_close > upper_bb and (mid_close < ma if ma is not None else True)
+        buy_signal = squeeze_value2 == 'green' and squeeze_value1 == 'black' and squeeze_momentum_color1 in \
+                     self.bearish_momentum_colors and _recent_squeeze()
+        sell_signal = not buy_signal and squeeze_value2 == 'green' and squeeze_value1 == 'black' and \
+                      squeeze_momentum_color1 in self.bullish_momentum_colors and _recent_squeeze()
+
+        if self.ma_key is not None:
+            ma = strategy_data.loc[strategy_data.index[curr_idx - 1], self.ma_key]
+            buy_signal = buy_signal and mid_close1 > ma
+            sell_signal = sell_signal and mid_close1 < ma
 
         if self.invert:
             buy_signal, sell_signal = sell_signal, buy_signal
@@ -45,7 +82,7 @@ class BollingerBands(Strategy):
 
             if buy_signal:
                 open_price = curr_ao
-                sl_pips = pips_to_risk if pips_to_risk is not None else (open_price - lower_atr_band) * \
+                sl_pips = pips_to_risk if pips_to_risk is not None else (open_price - lower_atr_band1) * \
                                                                         self.pips_to_risk_atr_multiplier
                 stop_loss = open_price - sl_pips
 
@@ -61,7 +98,7 @@ class BollingerBands(Strategy):
 
             elif sell_signal:
                 open_price = curr_bo
-                sl_pips = pips_to_risk if pips_to_risk is not None else (upper_atr_band - open_price) * \
+                sl_pips = pips_to_risk if pips_to_risk is not None else (upper_atr_band1 - open_price) * \
                                                                         self.pips_to_risk_atr_multiplier
                 stop_loss = open_price + sl_pips
 

@@ -2,46 +2,39 @@ from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
-from strategy.strategy import Strategy
+from strategies.strategy import Strategy
 from typing import Callable, Optional
 from utils.technical_indicators import TechnicalIndicators
 
 
-class MACD(Strategy):
+class Supertrend(Strategy):
     def __init__(self, starting_idx: int = 2,
-                 data_format_function: Callable[[DataFrame], DataFrame] = TechnicalIndicators.format_data_for_macd,
-                 percent_to_risk: float = 0.02, macd_type: str = 'macd', ma_key: Optional[str] = 'smma200',
-                 macd_threshold: float = 0.0, invert: bool = False, use_tsl: bool = False,
-                 pips_to_risk: Optional[int] = 50, pips_to_risk_atr_multiplier: float = 5.0,
-                 risk_reward_ratio: Optional[float] = 1.5, close_trade_incrementally: bool = False) -> None:
+                 data_format_function: Callable[
+                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_supertrend,
+                 percent_to_risk: float = 0.02, ma_key: Optional[str] = 'smma200',
+                 invert: bool = False, use_tsl: bool = False, pips_to_risk: Optional[int] = 50,
+                 pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
+                 use_qqe_mod: bool = False,
+                 close_trade_incrementally: bool = False) -> None:
         super().__init__(starting_idx, data_format_function, percent_to_risk)
-        self.macd_type, self.ma_key, self.macd_threshold, self.invert, self.use_tsl, self.pips_to_risk, \
-        self.pips_to_risk_atr_multiplier, self.risk_reward_ratio, self.close_trade_incrementally = macd_type, ma_key, macd_threshold, invert, use_tsl, \
-                                                                                                   pips_to_risk, pips_to_risk_atr_multiplier, \
-                                                                                                   risk_reward_ratio, close_trade_incrementally
+        self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
+        self.risk_reward_ratio, self.use_qqe_mod, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
+                                                                                   pips_to_risk_atr_multiplier, risk_reward_ratio, use_qqe_mod, close_trade_incrementally
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
-        # Determine which type of macd to use
-        macd_key, macdsignal_key = ('n_macd', 'n_macdsignal') if self.macd_type == 'n_macd' else (
-            ('impulse_macd', 'impulse_macdsignal') if self.macd_type == 'impulse_macd' else ('macd', 'macdsignal'))
-
-        # Grab the needed values from the market data
-        macd2, macdsignal2 = strategy_data.loc[strategy_data.index[curr_idx - 2], [macd_key, macdsignal_key]]
-        macd1, macdsignal1, atr, mid_close = strategy_data.loc[
-            strategy_data.index[curr_idx - 1], [macd_key, macdsignal_key, 'atr', 'Mid_Close']]
+        # Grab the needed strategies values
+        supertrend2 = strategy_data.loc[strategy_data.index[curr_idx - 2], 'supertrend']
+        supertrend1, supertrend_ub, supertrend_lb, qqe_up, qqe_down, mid_close = strategy_data.loc[
+            strategy_data.index[curr_idx - 1], ['supertrend', 'supertrend_ub', 'supertrend_lb', 'qqe_up', 'qqe_down',
+                                                'Mid_Close']]
         ma = strategy_data.loc[strategy_data.index[curr_idx - 1], self.ma_key] if self.ma_key is not None else None
 
         # Determine if there is a buy or sell signal
-        crossed_up = macd2 < macdsignal2 and macd1 > macdsignal1 and max([macd2, macdsignal2, macd1, macdsignal1]) < 0
-        crossed_down = macd2 > macdsignal2 and macd1 < macdsignal1 and min([macd2, macdsignal2, macd1, macdsignal1]) > 0
-        macd_final_threshold = self.macd_threshold * atr if self.macd_type != 'n_macd' else self.macd_threshold
-        macd_large_enough = min([abs(macd1), abs(macdsignal1), abs(macd2), abs(macdsignal2)]) >= macd_final_threshold
-        buy_ma_condition_met = mid_close > ma if ma is not None else True
-        sell_ma_condition_met = mid_close < ma if ma is not None else True
-
-        buy_signal = crossed_up and macd_large_enough and buy_ma_condition_met
-        sell_signal = crossed_down and macd_large_enough and sell_ma_condition_met
+        buy_signal = not supertrend2 and supertrend1 and (mid_close > ma if ma is not None else True) and (
+            qqe_up if self.use_qqe_mod else True)
+        sell_signal = supertrend2 and not supertrend1 and (mid_close < ma if ma is not None else True) and (
+            qqe_down if self.use_qqe_mod else True)
 
         if self.invert:
             buy_signal, sell_signal = sell_signal, buy_signal
@@ -53,10 +46,11 @@ class MACD(Strategy):
             spread = abs(curr_ao - curr_bo)
             divider = 100 if 'Jpy' in currency_pair else 10000
             pips_to_risk = self.pips_to_risk / divider if self.pips_to_risk is not None else None
-            sl_pips = pips_to_risk if pips_to_risk is not None else atr * self.pips_to_risk_atr_multiplier
 
             if buy_signal:
                 open_price = curr_ao
+                sl_pips = pips_to_risk if pips_to_risk is not None else (open_price - supertrend_lb) * \
+                                                                        self.pips_to_risk_atr_multiplier
                 stop_loss = open_price - sl_pips
 
                 if stop_loss < open_price and spread <= sl_pips * 0.1:
@@ -71,6 +65,8 @@ class MACD(Strategy):
 
             elif sell_signal:
                 open_price = curr_bo
+                sl_pips = pips_to_risk if pips_to_risk is not None else (supertrend_ub - open_price) * \
+                                                                        self.pips_to_risk_atr_multiplier
                 stop_loss = open_price + sl_pips
 
                 if stop_loss > open_price and spread <= sl_pips * 0.1:

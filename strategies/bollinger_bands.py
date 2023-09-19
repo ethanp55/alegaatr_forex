@@ -2,37 +2,35 @@ from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
-from strategy.strategy import Strategy
+from strategies.strategy import Strategy
 from typing import Callable, Optional
 from utils.technical_indicators import TechnicalIndicators
 
 
-class BeepBoop(Strategy):
-    def __init__(self, starting_idx: int = 2,
+class BollingerBands(Strategy):
+    def __init__(self, starting_idx: int = 1,
                  data_format_function: Callable[
-                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_beep_boop,
+                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_bollinger_bands,
                  percent_to_risk: float = 0.02, ma_key: Optional[str] = 'smma200',
                  invert: bool = False, use_tsl: bool = False, pips_to_risk: Optional[int] = 50,
                  pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
-                 n_in_a_row: int = 9,
                  close_trade_incrementally: bool = False) -> None:
         super().__init__(starting_idx, data_format_function, percent_to_risk)
         self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
-        self.risk_reward_ratio, self.n_in_a_row, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
-                                                                                  pips_to_risk_atr_multiplier, risk_reward_ratio, n_in_a_row, close_trade_incrementally
-        self.starting_idx = self.n_in_a_row
+        self.risk_reward_ratio, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
+                                                                 pips_to_risk_atr_multiplier, risk_reward_ratio, close_trade_incrementally
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
-        # Grab the needed strategy values
-        beep_boops = list(strategy_data.loc[strategy_data.index[curr_idx - self.n_in_a_row:curr_idx], 'beep_boop'])
-        lower_atr_band1, upper_atr_band1, mid_close1 = strategy_data.loc[
-            strategy_data.index[curr_idx - 1], ['lower_atr_band', 'upper_atr_band', 'Mid_Close']]
+        # Grab the needed strategies values
+        lower_bb, upper_bb, lower_atr_band, upper_atr_band, mid_close = strategy_data.loc[
+            strategy_data.index[curr_idx - 1], ['lower_bb', 'upper_bb', 'lower_atr_band', 'upper_atr_band',
+                                                'Mid_Close']]
         ma = strategy_data.loc[strategy_data.index[curr_idx - 1], self.ma_key] if self.ma_key is not None else None
 
         # Determine if there is a buy or sell signal
-        buy_signal = all([b_boop == 1 for b_boop in beep_boops]) and (mid_close1 > ma if ma is not None else True)
-        sell_signal = all([b_boop == 2 for b_boop in beep_boops]) and (mid_close1 < ma if ma is not None else True)
+        buy_signal = mid_close < lower_bb and (mid_close > ma if ma is not None else True)
+        sell_signal = mid_close > upper_bb and (mid_close < ma if ma is not None else True)
 
         if self.invert:
             buy_signal, sell_signal = sell_signal, buy_signal
@@ -47,7 +45,7 @@ class BeepBoop(Strategy):
 
             if buy_signal:
                 open_price = curr_ao
-                sl_pips = pips_to_risk if pips_to_risk is not None else (open_price - lower_atr_band1) * \
+                sl_pips = pips_to_risk if pips_to_risk is not None else (open_price - lower_atr_band) * \
                                                                         self.pips_to_risk_atr_multiplier
                 stop_loss = open_price - sl_pips
 
@@ -63,7 +61,7 @@ class BeepBoop(Strategy):
 
             elif sell_signal:
                 open_price = curr_bo
-                sl_pips = pips_to_risk if pips_to_risk is not None else (upper_atr_band1 - open_price) * \
+                sl_pips = pips_to_risk if pips_to_risk is not None else (upper_atr_band - open_price) * \
                                                                         self.pips_to_risk_atr_multiplier
                 stop_loss = open_price + sl_pips
 

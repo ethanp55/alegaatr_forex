@@ -4,7 +4,7 @@ from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 import numpy as np
-from strategy.strategy import Strategy
+from strategies.strategy import Strategy
 from typing import Optional
 
 
@@ -18,7 +18,7 @@ class MarketSimulator(object):
         pips_risked, curr_trade = [], None
         i = strategy.starting_idx
 
-        # Format the strategy data (each strategy has specific indicators it uses)
+        # Format the strategies data (each strategies has specific indicators it uses)
         strategy_data = strategy.data_format_function(strategy_data_raw.copy())
 
         # Helper function for iterating through a trade on the smaller (5 minute) time frame
@@ -28,7 +28,7 @@ class MarketSimulator(object):
 
             for j in range(len(market_data)):
                 # Check to see if it should close out (there are 4 conditions) or if the market moves in the trade's
-                # favor and the strategy decides to move the stop loss
+                # favor and the strategies decides to move the stop loss
                 curr_bid_open, curr_bid_high, curr_bid_low, curr_ask_open, curr_ask_high, curr_ask_low, curr_mid_open, \
                 curr_date = market_data.loc[market_data.index[j], ['Bid_Open', 'Bid_High', 'Bid_Low', 'Ask_Open',
                                                                    'Ask_High', 'Ask_Low', 'Mid_Open', 'Date']]
@@ -67,10 +67,10 @@ class MarketSimulator(object):
 
                     return curr_date
 
-                # Check if the strategy decides to move the stop loss - the trade may or may not change
+                # Check if the strategies decides to move the stop loss - the trade may or may not change
                 trade = strategy.move_stop_loss(j, market_data, trade)
 
-                # Check if the strategy decides to close part of the trade - the trade may or may not change, and it
+                # Check if the strategies decides to close part of the trade - the trade may or may not change, and it
                 # might close out completely
                 trade = strategy.close_part_of_trade(j, market_data, trade, simulation_results, currency_pair)
 
@@ -80,7 +80,7 @@ class MarketSimulator(object):
             # If we get to the end of the smaller data frame without returning, that means the simulation is done
             return None
 
-        # Iterate through the strategy data (either on the H4, H1, or M30 time frames)
+        # Iterate through the strategies data (either on the H4, H1, or M30 time frames)
         while i < len(strategy_data):
             # If there is no open trade, check to see if we should place one
             if curr_trade is None:
