@@ -626,3 +626,21 @@ class TechnicalIndicators(object):
         formatted_df.reset_index(drop=True, inplace=True)
 
         return formatted_df
+
+    @staticmethod
+    def format_data_for_bar_movement(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['atr'] = TechnicalIndicators.atr(formatted_df['Mid_High'], formatted_df['Mid_Low'],
+                                                      formatted_df['Mid_Close'])
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
