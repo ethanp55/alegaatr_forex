@@ -324,6 +324,69 @@ class TechnicalIndicators(object):
         return md, sb
 
     @staticmethod
+    def psar(barsdata, iaf=0.02, maxaf=0.2):
+        length = len(barsdata)
+        high = list(barsdata['Mid_High'])
+        low = list(barsdata['Mid_Low'])
+        close = list(barsdata['Mid_Close'])
+        psar = close[0:len(close)]
+        bull = True
+        af = iaf
+        hp = high[0]
+        lp = low[0]
+        for i in range(2, length):
+            if bull:
+                psar[i] = psar[i - 1] + af * (hp - psar[i - 1])
+            else:
+                psar[i] = psar[i - 1] + af * (lp - psar[i - 1])
+            reverse = False
+            if bull:
+                if low[i] < psar[i]:
+                    bull = False
+                    reverse = True
+                    psar[i] = hp
+                    lp = low[i]
+                    af = iaf
+            else:
+                if high[i] > psar[i]:
+                    bull = True
+                    reverse = True
+                    psar[i] = lp
+                    hp = high[i]
+                    af = iaf
+            if not reverse:
+                if bull:
+                    if high[i] > hp:
+                        hp = high[i]
+                        af = min(af + iaf, maxaf)
+                    if low[i - 1] < psar[i]:
+                        psar[i] = low[i - 1]
+                    if low[i - 2] < psar[i]:
+                        psar[i] = low[i - 2]
+                else:
+                    if low[i] < lp:
+                        lp = low[i]
+                        af = min(af + iaf, maxaf)
+                    if high[i - 1] > psar[i]:
+                        psar[i] = high[i - 1]
+                    if high[i - 2] > psar[i]:
+                        psar[i] = high[i - 2]
+        return psar
+
+    @staticmethod
+    def beep_boop(row):
+        macdhist, ema50, mid_low, mid_high = row[['macdhist', 'ema50', 'Mid_Low', 'Mid_High']]
+
+        if float(macdhist) > 0 and float(mid_low) > float(ema50):
+            return 1
+
+        elif float(macdhist) < 0 and float(mid_high) < float(ema50):
+            return 2
+
+        else:
+            return 0
+
+    @staticmethod
     def format_data_for_ml_model(df: pd.DataFrame) -> pd.DataFrame:
         formatted_df = df.copy()
         formatted_df['rsi'] = TechnicalIndicators.rsi(formatted_df['Mid_Close'])
@@ -523,6 +586,42 @@ class TechnicalIndicators(object):
         formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
         formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
         formatted_df['lower_kc'], formatted_df['upper_kc'] = TechnicalIndicators.keltner_channels(formatted_df)
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_sar(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        formatted_df['sar'] = TechnicalIndicators.psar(formatted_df)
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_beep_boop(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        macd = pd.Series.ewm(formatted_df['Mid_Close'], span=12).mean() - pd.Series.ewm(formatted_df['Mid_Close'],
+                                                                                        span=26).mean()
+        macdsignal = pd.Series.ewm(macd, span=9).mean()
+        formatted_df['macdhist'] = macd - macdsignal
+        formatted_df['beep_boop'] = formatted_df.apply(TechnicalIndicators.beep_boop, axis=1)
         formatted_df.dropna(inplace=True)
         formatted_df.reset_index(drop=True, inplace=True)
 
