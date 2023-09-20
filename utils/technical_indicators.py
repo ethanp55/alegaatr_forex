@@ -387,6 +387,64 @@ class TechnicalIndicators(object):
             return 0
 
     @staticmethod
+    def fractal(lows, highs, window=20):
+        assert len(lows) == len(highs)
+
+        fractal_period = 2 * window + 1
+
+        is_support = lows.rolling(fractal_period, center=True).apply(
+            lambda x: x[window] == min(x), raw=True)
+        is_resistance = highs.rolling(fractal_period, center=True).apply(
+            lambda x: x[window] == max(x), raw=True)
+
+        is_support_indices = pd.Series(is_support.index[is_support == 1.0])
+        is_resistance_indices = pd.Series(
+            is_resistance.index[is_resistance == 1.0])
+
+        support_fractal_vals = lows[is_support_indices].reindex(lows.index).ffill()
+        resistance_fractal_vals = highs[is_resistance_indices].reindex(
+            highs.index).ffill()
+
+        return support_fractal_vals, resistance_fractal_vals
+
+    @staticmethod
+    def choc(closes, support_fractals, resistance_fractals):
+        broke_down = closes < support_fractals
+        broke_up = closes > resistance_fractals
+
+        assert len(broke_down) == len(broke_up)
+
+        choc, prev_val = [], None
+
+        for i in range(len(broke_down)):
+            # First occurrence
+            if prev_val is None:
+                if broke_down[i]:
+                    prev_val = 'broke_down'
+                    choc.append('broke_down')
+
+                elif broke_up[i]:
+                    prev_val = 'broke_up'
+                    choc.append('broke_up')
+
+                else:
+                    choc.append('na')
+
+            # All other occurences
+            elif broke_down[i] and prev_val == 'broke_up':
+                prev_val = 'broke_down'
+                choc.append('broke_down')
+
+            elif broke_up[i] and prev_val == 'broke_down':
+                prev_val = 'broke_up'
+                choc.append('broke_up')
+
+            else:
+                choc.append('na')
+
+        return pd.Series(choc)
+
+    @staticmethod
     def format_data_for_ml_model(df: pd.DataFrame) -> pd.DataFrame:
         formatted_df = df.copy()
         formatted_df['rsi'] = TechnicalIndicators.rsi(formatted_df['Mid_Close'])
@@ -640,6 +698,31 @@ class TechnicalIndicators(object):
         formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
         formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
         formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
+    def format_data_for_choc(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['atr'] = TechnicalIndicators.atr(formatted_df['Mid_High'], formatted_df['Mid_Low'],
+                                                      formatted_df['Mid_Close'])
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        fractal_window = 50
+        formatted_df['support_fractal'], formatted_df['resistance_fractal'] = TechnicalIndicators.fractal(
+            formatted_df['Mid_Low'], formatted_df['Mid_High'], fractal_window)
+        formatted_df['support_fractal'], formatted_df['resistance_fractal'] = formatted_df['support_fractal'].shift(
+            fractal_window), formatted_df['resistance_fractal'].shift(fractal_window)
+        formatted_df['choc'] = TechnicalIndicators.choc(formatted_df['Mid_Close'], formatted_df['support_fractal'],
+                                                        formatted_df['resistance_fractal'])
         formatted_df.dropna(inplace=True)
         formatted_df.reset_index(drop=True, inplace=True)
 

@@ -14,7 +14,7 @@ class SimulationRunner(object):
         return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair)
 
 
-from strategies.bar_movement import BarMovement
+from strategies.macd_key_level import MACDKeyLevel
 
-results = SimulationRunner.run_simulation(BarMovement(close_trade_incrementally=True), 'Eur_Usd', 'M30', True)
+results = SimulationRunner.run_simulation(MACDKeyLevel(close_trade_incrementally=False), 'Eur_Usd', 'M30', True)
 print(results)
