@@ -727,3 +727,40 @@ class TechnicalIndicators(object):
         formatted_df.reset_index(drop=True, inplace=True)
 
         return formatted_df
+
+    @staticmethod
+    def format_data_for_ml_model_for_simulation(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+        formatted_df['lower_atr_band'], formatted_df['upper_atr_band'] = TechnicalIndicators.atr_bands(
+            formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['ema200'] = pd.Series.ewm(formatted_df['Mid_Close'], span=200).mean()
+        formatted_df['ema100'] = pd.Series.ewm(formatted_df['Mid_Close'], span=100).mean()
+        formatted_df['ema50'] = pd.Series.ewm(formatted_df['Mid_Close'], span=50).mean()
+        formatted_df['smma200'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 200)
+        formatted_df['smma100'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 100)
+        formatted_df['smma50'] = TechnicalIndicators.smma(formatted_df['Mid_Close'], 50)
+        formatted_df['bid_pips_down'] = abs(formatted_df['Bid_Open'] - formatted_df['Bid_Low'])
+        formatted_df['bid_pips_up'] = abs(formatted_df['Bid_High'] - formatted_df['Bid_Open'])
+        formatted_df['ask_pips_down'] = abs(formatted_df['Ask_Open'] - formatted_df['Ask_Low'])
+        formatted_df['ask_pips_up'] = abs(formatted_df['Ask_High'] - formatted_df['Ask_Open'])
+        formatted_df['rsi'] = TechnicalIndicators.rsi(formatted_df['Mid_Close'])
+        formatted_df['rsi_sma'] = formatted_df['rsi'].rolling(50).mean()
+        formatted_df['adx'] = TechnicalIndicators.adx(formatted_df['Mid_High'], formatted_df['Mid_Low'],
+                                                      formatted_df['Mid_Close'])
+        formatted_df['chop'] = TechnicalIndicators.chop(formatted_df)
+        formatted_df['vo'] = TechnicalIndicators.vo(formatted_df['Volume'])
+        formatted_df['qqe_up'], formatted_df['qqe_down'], formatted_df['qqe_val'] = \
+            TechnicalIndicators.qqe_mod(formatted_df['Mid_Close'])
+        formatted_df['rsi_up'] = formatted_df['rsi'] > formatted_df['rsi_sma']
+        formatted_df['adx_large'] = formatted_df['adx'] > 30
+        formatted_df['chop_small'] = formatted_df['chop'] < 0.5
+        formatted_df['vo_positive'] = formatted_df['vo'] > 0
+        formatted_df['squeeze_on'] = TechnicalIndicators.squeeze(formatted_df)
+        formatted_df['macd'] = pd.Series.ewm(formatted_df['Mid_Close'], span=12).mean() - \
+                               pd.Series.ewm(formatted_df['Mid_Close'], span=26).mean()
+        formatted_df['macdsignal'] = pd.Series.ewm(formatted_df['macd'], span=9).mean()
+
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        return formatted_df

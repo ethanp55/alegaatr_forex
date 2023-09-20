@@ -5,6 +5,7 @@ import pickle
 import random
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor
+from typing import Tuple
 from utils.technical_indicators import TechnicalIndicators
 
 
@@ -13,6 +14,15 @@ class RandomForest(Model):
         super().__init__(name)
         self.training_set_percentage = training_set_percentage
         self.random_forest, self.scaler = None, None
+
+    def load_model(self) -> None:
+        self.random_forest = pickle.load(open(f'../models/model_files/{self.name}_rf.pickle', 'rb'))
+        self.scaler = pickle.load(open(f'../models/model_files/{self.name}_scaler.pickle', 'rb'))
+
+    def predict(self, x: np.array) -> Tuple[float, float, float, float]:
+        x_scaled = self.scaler.transform(x)
+
+        return self.random_forest.predict(x_scaled)[0]
 
     def train(self, df: pd.DataFrame) -> None:
         # Create formatted training data for the random forest and separate it into training and validation sets
@@ -37,7 +47,7 @@ class RandomForest(Model):
 
         train_cutoff_index = int(len(training_data) * self.training_set_percentage)
         train_set, validation_set = training_data[:train_cutoff_index], \
-            training_data[train_cutoff_index:]
+                                    training_data[train_cutoff_index:]
 
         x_train, y_train, x_validation, y_validation = [], [], [], []
 
@@ -53,7 +63,7 @@ class RandomForest(Model):
             np.array(x_train), np.array(y_train), np.array(x_validation), np.array(y_validation)
 
         # Save the scaler
-        with open(f'./models/model_files/{self.name}_scaler.pickle', 'wb') as f:
+        with open(f'../models/model_files/{self.name}_scaler.pickle', 'wb') as f:
             pickle.dump(self.scaler, f)
 
         # Try different hyperparameters
@@ -90,6 +100,6 @@ class RandomForest(Model):
             print(f'Remaining runs: {n_runs} -- Best validation MSE so far: {best_validation_mse}')
 
         # Save the best random forest
-        with open(f'./models/model_files/{self.name}_rf.pickle', 'wb') as f:
+        with open(f'../models/model_files/{self.name}_rf.pickle', 'wb') as f:
             pickle.dump(self.random_forest, f)
 

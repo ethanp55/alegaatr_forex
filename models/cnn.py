@@ -3,11 +3,12 @@ import pandas as pd
 import pickle
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPool2D
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import load_model, Sequential
 from tensorflow.keras.optimizers import Adam
 from models.model import Model
 from pyts.image import GramianAngularField
 from sklearn.preprocessing import StandardScaler
+from typing import Tuple
 from utils.technical_indicators import TechnicalIndicators
 
 
@@ -23,6 +24,16 @@ class CNN(Model):
         gasf_subset = gasf_transformer.transform(data_slice)
 
         return gasf_subset
+
+    def load_model(self) -> None:
+        self.cnn = load_model(f'../models/model_files/{self.name}_cnn')
+        self.scaler = pickle.load(open(f'../models/model_files/{self.name}_scaler.pickle', 'rb'))
+
+    def predict(self, x: np.array) -> Tuple[float, float, float, float]:
+        x_scaled = self.scaler.transform(x)
+        x_image = self._convert_to_image_data(x_scaled)
+
+        return self.cnn.predict(x_image.reshape(-1, self.lookback, x_image.shape[-1], x_image.shape[-1]))[0]
 
     def train(self, df: pd.DataFrame) -> None:
         # Create formatted training data for the CNN and separate it into training and validation sets
@@ -49,7 +60,7 @@ class CNN(Model):
 
         train_cutoff_index = int(len(cnn_training_data) * self.training_set_percentage)
         train_set, validation_set = cnn_training_data[:train_cutoff_index], \
-            cnn_training_data[train_cutoff_index:]
+                                    cnn_training_data[train_cutoff_index:]
 
         x_train, y_train, x_validation, y_validation = [], [], [], []
 
@@ -67,7 +78,7 @@ class CNN(Model):
         y_validation = np.array(y_validation)
 
         # Save the scaler
-        with open(f'./models/model_files/{self.name}_scaler.pickle', 'wb') as f:
+        with open(f'../models/model_files/{self.name}_scaler.pickle', 'wb') as f:
             pickle.dump(self.scaler, f)
 
         # Create and train the CNN
@@ -105,7 +116,7 @@ class CNN(Model):
         n_epochs = 100
         batch_size = 32
         optimizer = Adam()
-        cnn_file_path = f'./models/model_files/{self.name}_cnn'
+        cnn_file_path = f'../models/model_files/{self.name}_cnn'
         early_stop = EarlyStopping(
             monitor='val_mean_squared_error', verbose=1, patience=int(n_epochs * 0.1))
         model_checkpoint = ModelCheckpoint(

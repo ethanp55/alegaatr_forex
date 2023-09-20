@@ -74,8 +74,8 @@ class SqueezePro(Strategy):
 
         # If there is a signal, place a trade (assuming the spread is small enough)
         if buy_signal or sell_signal:
-            curr_date, curr_ao, curr_bo, curr_mo = strategy_data.loc[
-                strategy_data.index[curr_idx], ['Date', 'Ask_Open', 'Bid_Open', 'Mid_Open']]
+            curr_date, curr_ao, curr_bo, curr_mo, curr_bh, curr_al = strategy_data.loc[
+                strategy_data.index[curr_idx], ['Date', 'Ask_Open', 'Bid_Open', 'Mid_Open', 'Bid_High', 'Ask_Low']]
             spread = abs(curr_ao - curr_bo)
             divider = 100 if 'Jpy' in currency_pair else 10000
             pips_to_risk = self.pips_to_risk / divider if self.pips_to_risk is not None else None
@@ -86,7 +86,7 @@ class SqueezePro(Strategy):
                                                                         self.pips_to_risk_atr_multiplier
                 stop_loss = open_price - sl_pips
 
-                if stop_loss < open_price and spread <= sl_pips * 0.1:
+                if stop_loss < open_price and spread <= sl_pips * 0.1 and curr_al <= open_price:
                     trade_type = TradeType.BUY
                     amount_to_risk = account_balance * self.percent_to_risk
                     n_units = MarketCalculations.get_n_units(trade_type, stop_loss, curr_ao, curr_bo, curr_mo,
@@ -94,7 +94,8 @@ class SqueezePro(Strategy):
                     stop_gain = None if self.risk_reward_ratio is None else open_price + (
                             sl_pips * self.risk_reward_ratio)
 
-                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date)
+                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
+                                 currency_pair)
 
             elif sell_signal:
                 open_price = curr_bo
@@ -102,7 +103,7 @@ class SqueezePro(Strategy):
                                                                         self.pips_to_risk_atr_multiplier
                 stop_loss = open_price + sl_pips
 
-                if stop_loss > open_price and spread <= sl_pips * 0.1:
+                if stop_loss > open_price and spread <= sl_pips * 0.1 and curr_bh >= open_price:
                     trade_type = TradeType.SELL
                     amount_to_risk = account_balance * self.percent_to_risk
                     n_units = MarketCalculations.get_n_units(trade_type, stop_loss, curr_ao, curr_bo, curr_mo,
@@ -110,7 +111,8 @@ class SqueezePro(Strategy):
                     stop_gain = None if self.risk_reward_ratio is None else open_price - (
                             sl_pips * self.risk_reward_ratio)
 
-                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date)
+                    return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
+                                 currency_pair)
 
         return None
 

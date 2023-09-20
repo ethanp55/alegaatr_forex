@@ -3,10 +3,11 @@ import pandas as pd
 import pickle
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Dense, Dropout, LSTM, BatchNormalization
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import load_model, Sequential
 from tensorflow.keras.optimizers import Adam
 from models.model import Model
 from sklearn.preprocessing import StandardScaler
+from typing import Tuple
 from utils.technical_indicators import TechnicalIndicators
 
 
@@ -16,6 +17,15 @@ class Lstm(Model):
         self.lstm_training_set_percentage = lstm_training_set_percentage
         self.lookback = lookback
         self.scaler = None
+
+    def load_model(self) -> None:
+        self.lstm = load_model(f'../models/model_files/{self.name}_lstm')
+        self.scaler = pickle.load(open(f'../models/model_files/{self.name}_scaler.pickle', 'rb'))
+
+    def predict(self, x: np.array) -> Tuple[float, float, float, float]:
+        x_scaled = self.scaler.transform(x)
+
+        return self.lstm.predict(x_scaled.reshape(-1, self.lookback, x_scaled.shape[-1]))[0]
 
     def train(self, df: pd.DataFrame) -> None:
         # Create formatted training data for the LSTM and separate it into training and validation sets
@@ -41,7 +51,7 @@ class Lstm(Model):
 
         lstm_train_cutoff_index = int(len(lstm_training_data) * self.lstm_training_set_percentage)
         lstm_train_set, lstm_validation_set = lstm_training_data[:lstm_train_cutoff_index], \
-            lstm_training_data[lstm_train_cutoff_index:]
+                                              lstm_training_data[lstm_train_cutoff_index:]
 
         x_train, y_train, x_validation, y_validation = [], [], [], []
 
@@ -59,7 +69,7 @@ class Lstm(Model):
         y_validation = np.array(y_validation)
 
         # Save the scaler
-        with open(f'./models/model_files/{self.name}_scaler.pickle', 'wb') as f:
+        with open(f'../models/model_files/{self.name}_scaler.pickle', 'wb') as f:
             pickle.dump(self.scaler, f)
 
         # Create and train the LSTM
@@ -88,7 +98,7 @@ class Lstm(Model):
         n_epochs = 100
         batch_size = 32
         optimizer = Adam()
-        lstm_file_path = f'./models/model_files/{self.name}_lstm'
+        lstm_file_path = f'../models/model_files/{self.name}_lstm'
         early_stop = EarlyStopping(
             monitor='val_mean_squared_error', verbose=1, patience=int(n_epochs * 0.1))
         model_checkpoint = ModelCheckpoint(

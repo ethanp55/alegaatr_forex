@@ -8,9 +8,9 @@ from tensorflow.keras import Model as TfModel
 from tensorflow.keras.layers import BatchNormalization, Dense, Dropout, Flatten, Layer, LSTM, Multiply, Softmax
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.metrics import MeanSquaredError as MeanSquaredErrorMetric
-from tensorflow.keras.models import save_model
+from tensorflow.keras.models import load_model, save_model
 from tensorflow.keras.optimizers import Adam
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from utils.technical_indicators import TechnicalIndicators
 
 
@@ -97,6 +97,15 @@ class LstmMixture(Model):
         self.lookback = lookback
         self.scaler = None
 
+    def load_model(self) -> None:
+        self.mixture = load_model(f'../models/model_files/{self.name}_mixture')
+        self.scaler = pickle.load(open(f'../models/model_files/{self.name}_scaler.pickle', 'rb'))
+
+    def predict(self, x: np.array) -> Tuple[float, float, float, float]:
+        x_scaled = self.scaler.transform(x)
+
+        return self.mixture.predict(x_scaled.reshape(-1, self.lookback, x_scaled.shape[-1]))[0]
+
     def train(self, df: pd.DataFrame) -> None:
         # Create formatted training data for the LSTM and separate it into training and validation sets
         print(f'Formatting LSTM training data for {self.name}...')
@@ -121,7 +130,7 @@ class LstmMixture(Model):
 
         lstm_train_cutoff_index = int(len(lstm_training_data) * self.lstm_training_set_percentage)
         lstm_train_set, lstm_validation_set = lstm_training_data[:lstm_train_cutoff_index], \
-            lstm_training_data[lstm_train_cutoff_index:]
+                                              lstm_training_data[lstm_train_cutoff_index:]
 
         x_train, y_train, x_validation, y_validation = [], [], [], []
 
@@ -139,7 +148,7 @@ class LstmMixture(Model):
         y_validation = np.array(y_validation)
 
         # Save the scaler
-        with open(f'./models/model_files/{self.name}_scaler.pickle', 'wb') as f:
+        with open(f'../models/model_files/{self.name}_scaler.pickle', 'wb') as f:
             pickle.dump(self.scaler, f)
 
         # Items needed for training and testing, since we're running a custom TF model (optimizer, metrics, etc.)
@@ -193,7 +202,7 @@ class LstmMixture(Model):
                 best_val_mse = val_mse
 
                 # Save the network
-                save_model(lstm_mixture, f'./models/model_files/{self.name}_mixture')
+                save_model(lstm_mixture, f'/./models/model_files/{self.name}_mixture')
 
             else:
                 # Increment the number of epochs that have passed without any improvement/change

@@ -14,7 +14,19 @@ class SimulationRunner(object):
         return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair)
 
 
-from strategies.macd_key_level import MACDKeyLevel
+from strategies.lstm_mixture import LstmMixtureStrategy
 
-results = SimulationRunner.run_simulation(MACDKeyLevel(close_trade_incrementally=False), 'Eur_Usd', 'M30', True)
+currency_pair = 'Eur_Usd'
+time_frame = 'M30'
+pair_time_frame_str = f'{currency_pair}_{time_frame}'
+# model_name = f'KNN_{pair_time_frame_str}'
+# model_name = f'MLP_{pair_time_frame_str}'
+# model_name = f'RandomForest_{pair_time_frame_str}'
+# model_name = f'LSTM_{pair_time_frame_str}'
+# model_name = f'CNN_{pair_time_frame_str}'
+model_name = f'LstmMixture_{pair_time_frame_str}'
+results = SimulationRunner.run_simulation(LstmMixtureStrategy(model_name, close_trade_incrementally=False),
+                                          currency_pair,
+                                          time_frame,
+                                          True)
 print(results)
