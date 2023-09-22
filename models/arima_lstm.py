@@ -4,8 +4,9 @@ import pandas as pd
 import pmdarima as pm
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Dense, Dropout, LSTM, BatchNormalization
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import load_model, Sequential
 from tensorflow.keras.optimizers import Adam
+from typing import Tuple
 from models.model import Model
 
 
@@ -17,7 +18,34 @@ class ArimaLSTM(Model):
         self.lookback = lookback
         self.arima_bid_pips_down, self.arima_bid_pips_up, self.arima_ask_pips_down, self.arima_ask_pips_up = \
             None, None, None, None
-        self.prediction_buffer_size = 0
+
+    def load_model(self) -> None:
+        self.lstm = load_model(f'../models/model_files/{self.name}_lstm')
+        self.arima_bid_pips_down = pickle.load(
+            open(f'../models/model_files/{self.name}_arima_bid_pips_down.pickle', 'rb'))
+        self.arima_bid_pips_up = pickle.load(open(f'../models/model_files/{self.name}_arima_bid_pips_up.pickle', 'rb'))
+        self.arima_ask_pips_down = pickle.load(
+            open(f'../models/model_files/{self.name}_arima_ask_pips_down.pickle', 'rb'))
+        self.arima_ask_pips_up = pickle.load(open(f'../models/model_files/{self.name}_arima_ask_pips_up.pickle', 'rb'))
+
+    def predict(self, n_periods: int, bid_pips_down: pd.DataFrame, bid_pips_up: pd.DataFrame,
+                ask_pips_down: pd.DataFrame, ask_pips_up: pd.DataFrame) -> Tuple[float, float, float, float]:
+        arima_bid_pips_down_pred = self.arima_bid_pips_down.predict(n_periods=n_periods).iloc[-self.lookback:, ]
+        arima_bid_pips_up_pred = self.arima_bid_pips_up.predict(n_periods=n_periods).iloc[-self.lookback:, ]
+        arima_ask_pips_down_pred = self.arima_ask_pips_down.predict(n_periods=n_periods).iloc[-self.lookback:, ]
+        arima_ask_pips_up_pred = self.arima_ask_pips_up.predict(n_periods=n_periods).iloc[-self.lookback:, ]
+
+        arima_bid_pips_down_errors = bid_pips_down.reset_index(drop=True) - arima_bid_pips_down_pred.reset_index(
+            drop=True)
+        arima_bid_pips_up_errors = bid_pips_up.reset_index(drop=True) - arima_bid_pips_up_pred.reset_index(drop=True)
+        arima_ask_pips_down_errors = ask_pips_down.reset_index(drop=True) - arima_ask_pips_down_pred.reset_index(
+            drop=True)
+        arima_ask_pips_up_errors = ask_pips_up.reset_index(drop=True) - arima_ask_pips_up_pred.reset_index(drop=True)
+
+        arima_errors = pd.concat([arima_bid_pips_down_errors, arima_bid_pips_up_errors, arima_ask_pips_down_errors,
+                                  arima_ask_pips_up_errors], axis=1)
+
+        return self.lstm.predict(np.array(arima_errors).reshape(-1, self.lookback, arima_errors.shape[-1]))[0]
 
     def train(self, df: pd.DataFrame) -> None:
         # Create a training set for the ARIMA model and a training set for the LSTM
@@ -41,24 +69,19 @@ class ArimaLSTM(Model):
             df_train_arima['ask_pips_up'], stepwise=False, seasonal=False)
 
         # Save the ARIMA info
-        with open(f'./models/model_files/{self.name}_arima_bid_pips_down.pickle', 'wb') as f:
+        with open(f'../models/model_files/{self.name}_arima_bid_pips_down.pickle', 'wb') as f:
             pickle.dump(self.arima_bid_pips_down, f)
 
-        with open(f'./models/model_files/{self.name}_arima_bid_pips_up.pickle', 'wb') as f:
+        with open(f'../models/model_files/{self.name}_arima_bid_pips_up.pickle', 'wb') as f:
             pickle.dump(self.arima_bid_pips_up, f)
 
-        with open(f'./models/model_files/{self.name}_arima_ask_pips_down.pickle', 'wb') as f:
+        with open(f'../models/model_files/{self.name}_arima_ask_pips_down.pickle', 'wb') as f:
             pickle.dump(self.arima_ask_pips_down, f)
 
-        with open(f'./models/model_files/{self.name}_arima_ask_pips_up.pickle', 'wb') as f:
+        with open(f'../models/model_files/{self.name}_arima_ask_pips_up.pickle', 'wb') as f:
             pickle.dump(self.arima_ask_pips_up, f)
 
         num_lstm_data_points = len(df_train_lstm)
-        self.prediction_buffer_size = num_lstm_data_points  # When we make predictions on the test data, we want to
-        # pad the predictions
-
-        with open(f'./models/model_files/{self.name}_prediction_buffer_size.pickle', 'wb') as f:
-            pickle.dump(self.prediction_buffer_size, f)
 
         # Make predictions for each ARIMA model (will be used to train the LSTM)
         arima_bid_pips_down_pred = self.arima_bid_pips_down.predict(
@@ -98,7 +121,7 @@ class ArimaLSTM(Model):
 
         lstm_train_cutoff_index = int(len(lstm_training_data) * self.lstm_training_set_percentage)
         lstm_train_set, lstm_validation_set = lstm_training_data[:lstm_train_cutoff_index], \
-            lstm_training_data[lstm_train_cutoff_index:]
+                                              lstm_training_data[lstm_train_cutoff_index:]
 
         x_train, y_train, x_validation, y_validation = [], [], [], []
 
@@ -141,7 +164,7 @@ class ArimaLSTM(Model):
         n_epochs = 100
         batch_size = 32
         optimizer = Adam()
-        lstm_file_path = f'./models/model_files/{self.name}_lstm'
+        lstm_file_path = f'../models/model_files/{self.name}_lstm'
         early_stop = EarlyStopping(
             monitor='val_mean_squared_error', verbose=1, patience=int(n_epochs * 0.1))
         model_checkpoint = ModelCheckpoint(

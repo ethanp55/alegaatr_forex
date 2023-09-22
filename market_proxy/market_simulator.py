@@ -21,6 +21,8 @@ class MarketSimulator(object):
         # Format the strategies data (each strategies has specific indicators it uses)
         strategy_data = strategy.data_format_function(strategy_data_raw.copy())
 
+        print(len(strategy_data))
+
         # Helper function for iterating through a trade on the smaller (5 minute) time frame
         def _iterate_through_trade(trade: Trade) -> Optional[datetime]:
             market_data = market_data_raw.loc[market_data_raw['Date'] >= trade.start_date]
@@ -113,7 +115,7 @@ class MarketSimulator(object):
 
                 # Otherwise, update i so that we're on the correct date
                 else:
-                    i = strategy_data.loc[strategy_data['Date'] <= trade_end_date].index[-1] + 1
+                    i = int(strategy_data.loc[strategy_data['Date'] <= trade_end_date].index[-1] + 1)
 
             # Otherwise, increment i
             else:
