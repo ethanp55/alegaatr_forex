@@ -24,4 +24,4 @@ class Trade:
         rounding = 3 if 'Jpy' in self.currency_pair else 5
         self.open_price = round(self.open_price, rounding)
         self.stop_loss = round(self.stop_loss, rounding)
-        self.stop_gain = round(self.stop_gain, rounding)
+        self.stop_gain = round(self.stop_gain, rounding) if self.stop_gain is not None else None
