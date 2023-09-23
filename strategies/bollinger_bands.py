@@ -15,7 +15,7 @@ class BollingerBands(Strategy):
                  invert: bool = False, use_tsl: bool = False, pips_to_risk: Optional[int] = 50,
                  pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
                  close_trade_incrementally: bool = False) -> None:
-        super().__init__(starting_idx, data_format_function, percent_to_risk)
+        super().__init__(starting_idx, data_format_function, percent_to_risk, 'BollingerBands')
         self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
         self.risk_reward_ratio, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
                                                                  pips_to_risk_atr_multiplier, risk_reward_ratio, close_trade_incrementally

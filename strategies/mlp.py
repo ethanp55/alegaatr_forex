@@ -26,7 +26,7 @@ class MLPStrategy(Strategy):
                  pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
                  error_multiplier: float = 0.0,
                  close_trade_incrementally: bool = False) -> None:
-        super().__init__(starting_idx, data_format_function, percent_to_risk)
+        super().__init__(starting_idx, data_format_function, percent_to_risk, 'MLP')
         self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
         self.risk_reward_ratio, self.error_multiplier, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
                                                                                         pips_to_risk_atr_multiplier, risk_reward_ratio, error_multiplier, close_trade_incrementally

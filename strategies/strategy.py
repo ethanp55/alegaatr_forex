@@ -10,10 +10,11 @@ from typing import Callable, Optional
 # Abstract strategies class that each specific strategies must implement
 class Strategy:
     def __init__(self, starting_idx: int, data_format_function: Callable[[DataFrame], DataFrame],
-                 percent_to_risk: float) -> None:
+                 percent_to_risk: float, name: str) -> None:
         self.starting_idx = starting_idx
         self.data_format_function = data_format_function
         self.percent_to_risk = percent_to_risk
+        self.name = name
 
     # Each strategies has unique rules to determine if a trade should be placed
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \

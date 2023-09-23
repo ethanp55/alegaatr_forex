@@ -14,7 +14,7 @@ class MACD(Strategy):
                  macd_threshold: float = 0.0, invert: bool = False, use_tsl: bool = False,
                  pips_to_risk: Optional[int] = 50, pips_to_risk_atr_multiplier: float = 5.0,
                  risk_reward_ratio: Optional[float] = 1.5, close_trade_incrementally: bool = False) -> None:
-        super().__init__(starting_idx, data_format_function, percent_to_risk)
+        super().__init__(starting_idx, data_format_function, percent_to_risk, 'MACD')
         self.macd_type, self.ma_key, self.macd_threshold, self.invert, self.use_tsl, self.pips_to_risk, \
         self.pips_to_risk_atr_multiplier, self.risk_reward_ratio, self.close_trade_incrementally = macd_type, ma_key, macd_threshold, invert, use_tsl, \
                                                                                                    pips_to_risk, pips_to_risk_atr_multiplier, \
