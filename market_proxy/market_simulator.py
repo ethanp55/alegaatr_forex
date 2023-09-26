@@ -26,6 +26,12 @@ class MarketSimulator(object):
             market_data = market_data_raw.loc[market_data_raw['Date'] >= trade.start_date]
             market_data.reset_index(drop=True, inplace=True)
 
+            cd, al, bh = market_data.loc[market_data.index[0], ['Date', 'Ask_Low', 'Bid_High']]
+
+            if (trade.trade_type == TradeType.BUY and al > trade.open_price) or (
+                    trade.trade_type == TradeType.SELL and bh < trade.open_price):
+                return cd
+
             for j in range(len(market_data)):
                 # Check to see if it should close out (there are 4 conditions) or if the market moves in the trade's
                 # favor and the strategies decides to move the stop loss

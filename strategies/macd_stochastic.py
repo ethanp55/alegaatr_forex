@@ -14,14 +14,14 @@ class MACDStochastic(Strategy):
                  percent_to_risk: float = 0.02, macd_type: str = 'macd', ma_key: Optional[str] = 'smma200',
                  macd_threshold: float = 0.0, invert: bool = False, use_tsl: bool = False,
                  pips_to_risk: Optional[int] = 50, pips_to_risk_atr_multiplier: float = 5.0,
-                 risk_reward_ratio: Optional[float] = 1.5, stochastic_lookback: int = 12,
+                 risk_reward_ratio: Optional[float] = 1.5, lookback: int = 12,
                  use_stochastic_rsi: bool = False, close_trade_incrementally: bool = False) -> None:
         super().__init__(starting_idx, data_format_function, percent_to_risk, 'MACDStochastic')
         self.macd_type, self.ma_key, self.macd_threshold, self.invert, self.use_tsl, self.pips_to_risk, \
-        self.pips_to_risk_atr_multiplier, self.risk_reward_ratio, self.stochastic_lookback, self.use_stochastic_rsi, \
+        self.pips_to_risk_atr_multiplier, self.risk_reward_ratio, self.lookback, self.use_stochastic_rsi, \
         self.close_trade_incrementally = macd_type, ma_key, macd_threshold, invert, use_tsl, pips_to_risk, pips_to_risk_atr_multiplier, \
-                                         risk_reward_ratio, stochastic_lookback, use_stochastic_rsi, close_trade_incrementally
-        self.starting_idx = self.stochastic_lookback  # Make sure we at least start at the lookback value
+                                         risk_reward_ratio, lookback, use_stochastic_rsi, close_trade_incrementally
+        self.starting_idx = self.lookback  # Make sure we at least start at the lookback value
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
@@ -52,7 +52,7 @@ class MACDStochastic(Strategy):
 
             cross_up, cross_down = False, False
 
-            for i in range(curr_idx, curr_idx - self.stochastic_lookback, -1):
+            for i in range(curr_idx, curr_idx - self.lookback, -1):
                 slowk2, slowd2 = strategy_data.loc[strategy_data.index[i - 2], [slowk_key, slowd_key]]
                 slowk1, slowd1 = strategy_data.loc[strategy_data.index[i - 1], [slowk_key, slowd_key]]
 

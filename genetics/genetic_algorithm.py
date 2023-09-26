@@ -8,8 +8,8 @@ from typing import List, Tuple
 class GeneticAlgorithm(object):
     # Runs the genetic algorithm
     @staticmethod
-    def run(genome_type: type, currency_pair: str, time_frame: str, n_iterations: int = 50,
-            population_size: int = 25, possible_n_mutations_ratio: float = 0.25) -> None:
+    def run(genome_type: type, currency_pair: str, time_frame: str, n_iterations: int = 15,
+            population_size: int = 20, possible_n_mutations_ratio: float = 0.25) -> None:
         # Placeholders for the population and list of new genomes (used to updated the population)
         population, new_genomes = None, []
 
@@ -35,13 +35,18 @@ class GeneticAlgorithm(object):
             _, worst_performance = sorted_performances_with_indices[-1][0]
             best_genome, second_best_genome = population.genomes[best_idx], population.genomes[second_best_idx]
 
-            print(
-                f'Best performance = {best_performance}, second-best performance = {second_best_performance}, worst performance = {worst_performance}')
+            strategy_name = best_genome.strategy.name
+
+            print(f'{strategy_name} on {currency_pair} {time_frame}: best performance = {best_performance}, '
+                  f'second-best performance = {second_best_performance}, worst performance = {worst_performance}')
 
             new_genomes = [best_genome, second_best_genome]
 
             # Save the features of the best genome
-            best_genome.save_features()
+            if best_performance > 0:
+                print(f'Updating {strategy_name} features that yielded {best_performance} on {currency_pair} '
+                      f'{time_frame}')
+                best_genome.save_features()
 
             # Generate the remainder of the new population
             for j in range(int(population_size / 2) - 1):

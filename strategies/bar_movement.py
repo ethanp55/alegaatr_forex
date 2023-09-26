@@ -76,7 +76,7 @@ class BarMovement(Strategy):
                                                                         self.pips_to_risk_atr_multiplier
                 stop_loss = open_price - sl_pips
 
-                if stop_loss < open_price and spread <= sl_pips * 0.1 and curr_al <= open_price:
+                if stop_loss < open_price and spread <= sl_pips * 0.1:
                     trade_type = TradeType.BUY
                     amount_to_risk = account_balance * self.percent_to_risk
                     n_units = MarketCalculations.get_n_units(trade_type, stop_loss, curr_ao, curr_bo, curr_mo,
@@ -93,7 +93,7 @@ class BarMovement(Strategy):
                                                                         self.pips_to_risk_atr_multiplier
                 stop_loss = open_price + sl_pips
 
-                if stop_loss > open_price and spread <= sl_pips * 0.1 and curr_bh >= open_price:
+                if stop_loss > open_price and spread <= sl_pips * 0.1:
                     trade_type = TradeType.SELL
                     amount_to_risk = account_balance * self.percent_to_risk
                     n_units = MarketCalculations.get_n_units(trade_type, stop_loss, curr_ao, curr_bo, curr_mo,

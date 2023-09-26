@@ -58,6 +58,9 @@ class Genome:
         for attribute_name, genetic_feature in self.features.items():
             self.strategy.__setattr__(attribute_name, genetic_feature.concrete_value)
 
+            if attribute_name == 'lookback' or attribute_name == 'n_in_a_row':
+                self.strategy.__setattr__('starting_idx', genetic_feature.concrete_value)
+
     # Saves the genome's features (useful for saving the features of the best genome as the genetic algorithm is run)
     def save_features(self) -> None:
         pair_time_frame_str = f'{self.currency_pair}_{self.time_frame}'

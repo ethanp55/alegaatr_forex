@@ -11,23 +11,8 @@ class SimulationRunner(object):
         market_data_raw = DataLoader.load_simulation_data(currency_pair, 'M5', optimize)
         strategy_data_raw = DataLoader.load_simulation_data(currency_pair, time_frame, optimize, '2015-2023')
 
-        return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair)
+        # If we're running on test data (i.e. we're not optimizing anything), load in the strategy's "best" parameters
+        if not optimize:
+            strategy.load_best_parameters(currency_pair, time_frame)
 
-# from strategies.arima import ArimaStrategy
-#
-# currency_pair = 'Eur_Usd'
-# time_frame = 'M30'
-# pair_time_frame_str = f'{currency_pair}_{time_frame}'
-# # model_name = f'KNN_{pair_time_frame_str}'
-# # model_name = f'MLP_{pair_time_frame_str}'
-# # model_name = f'RandomForest_{pair_time_frame_str}'
-# # model_name = f'LSTM_{pair_time_frame_str}'
-# # model_name = f'CNN_{pair_time_frame_str}'
-# # model_name = f'LstmMixture_{pair_time_frame_str}'
-# # model_name = f'ArimaLSTM_{pair_time_frame_str}'
-# model_name = f'Arima_{pair_time_frame_str}'
-# results = SimulationRunner.run_simulation(ArimaStrategy(model_name, close_trade_incrementally=False),
-#                                           currency_pair,
-#                                           time_frame,
-#                                           True)
-# print(results)
+        return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair)

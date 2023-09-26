@@ -1,6 +1,7 @@
 from copy import deepcopy
 from numpy import floor
 from pandas import DataFrame
+import pickle
 from market_proxy.trade import Trade, TradeType
 from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
@@ -15,6 +16,20 @@ class Strategy:
         self.data_format_function = data_format_function
         self.percent_to_risk = percent_to_risk
         self.name = name
+
+    # Loads in the best parameter values that were estimated by the genetic algorithm
+    def load_best_parameters(self, currency_pair: str, time_frame: str) -> None:
+        pair_time_frame_str = f'{currency_pair}_{time_frame}'
+        best_params_dictionary = pickle.load(
+            open(f'../genetics/best_genome_features/{self.name}_{pair_time_frame_str}_features.pickle', 'rb'))
+
+        print(f'Best parameters for {self.name} on {pair_time_frame_str}:\n{best_params_dictionary}')
+
+        for attribute_name, val in best_params_dictionary.items():
+            self.__setattr__(attribute_name, val)
+
+        # self.__setattr__('use_tsl', True)
+        # self.__setattr__('close_trade_incrementally', True)
 
     # Each strategies has unique rules to determine if a trade should be placed
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
