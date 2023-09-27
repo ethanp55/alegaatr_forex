@@ -28,6 +28,9 @@ class Strategy:
         for attribute_name, val in best_params_dictionary.items():
             self.__setattr__(attribute_name, val)
 
+            if attribute_name == 'lookback' or attribute_name == 'n_in_a_row':
+                self.__setattr__('starting_idx', val)
+
         # self.__setattr__('use_tsl', True)
         # self.__setattr__('close_trade_incrementally', True)
 

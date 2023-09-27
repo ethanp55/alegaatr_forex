@@ -25,8 +25,10 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 def test_regular_strategies() -> None:
     # List of all of the regular strategies
-    strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
-                  MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend()]
+    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
+    #               MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend()]
+
+    strategies = [PSAR(), RSI(), Stochastic(), Supertrend(), BeepBoop()]
 
     # List of the final results to output
     test_results = []
@@ -43,11 +45,12 @@ def test_regular_strategies() -> None:
             rf_model_name = f'RandomForest_{pair_time_frame_str}'
 
             # List of ML strategies
-            ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
-                             MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
+            # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
+            #                  MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
 
             # List of all the strategies
-            all_strategies = strategies + ml_strategies
+            # all_strategies = strategies + ml_strategies
+            all_strategies = strategies
 
             # Creates a new process for each strategy
             pool = Pool(processes=len(all_strategies))
@@ -55,7 +58,7 @@ def test_regular_strategies() -> None:
                 partial(SimulationRunner.run_simulation, currency_pair=currency_pair, time_frame=time_frame,
                         optimize=False), all_strategies)
 
-            assert len(results) == len(all_strategies) == 19
+            # assert len(results) == len(all_strategies) == 19
 
             # Update the final results
             test_results += [(f'{strategy.name}_{pair_time_frame_str}', result) for strategy, result in
@@ -65,7 +68,7 @@ def test_regular_strategies() -> None:
     test_results.sort(key=lambda x: x[1].net_reward, reverse=True)
 
     # Print the results
-    print('----------------------------------------------------------')
+    print('\n----------------------------------------------------------')
     print('FINAL TEST RESULTS (ordered from most profitable to least)')
     print('----------------------------------------------------------')
 

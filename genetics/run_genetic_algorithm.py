@@ -24,11 +24,10 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
 def optimize_genomes() -> None:
-    # genome_types = [MACDGenome, SqueezeProGenome]
-    genome_types = [BarMovementGenome, BollingerBandsGenome]
-    # genome_types = [ChocGenome, KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome]
-    # genome_types = [PSARGenome, RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome]
-    # genome_types = [KNNGenome, MLPGenome, RandomForestGenome]
+    # genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
+    #                 KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
+    #                 RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome]
+    genome_types = [KNNGenome, MLPGenome, RandomForestGenome]
     # genome_types = [CNNGenome]
     # genome_types = [LstmGenome]
 
