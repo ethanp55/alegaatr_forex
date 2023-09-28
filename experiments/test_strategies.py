@@ -23,12 +23,13 @@ from strategies.supertrend import Supertrend
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
-def test_regular_strategies() -> None:
+def test_strategies() -> None:
     # List of all of the regular strategies
     # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
-    #               MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend()]
+    #               MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
+    #               RSI(), Stochastic(), Supertrend(), BeepBoop()]
 
-    strategies = [PSAR(), RSI(), Stochastic(), Supertrend(), BeepBoop()]
+    strategies = []
 
     # List of the final results to output
     test_results = []
@@ -47,10 +48,11 @@ def test_regular_strategies() -> None:
             # List of ML strategies
             # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
             #                  MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
+            ml_strategies = [KNNStrategy(knn_model_name), MLPStrategy(mlp_model_name),
+                             RandomForestStrategy(rf_model_name)]
 
             # List of all the strategies
-            # all_strategies = strategies + ml_strategies
-            all_strategies = strategies
+            all_strategies = strategies + ml_strategies
 
             # Creates a new process for each strategy
             pool = Pool(processes=len(all_strategies))
@@ -83,4 +85,4 @@ def test_regular_strategies() -> None:
 
 
 if __name__ == "__main__":
-    test_regular_strategies()
+    test_strategies()

@@ -5,6 +5,7 @@ from genetics.beep_boop_genome import BeepBoopGenome
 from genetics.bollinger_bands_genome import BollingerBandsGenome
 from genetics.choc_genome import ChocGenome
 from genetics.cnn_genome import CNNGenome
+from genetics.ensemble_genome import EnsembleGenome
 from genetics.keltner_channels_genome import KeltnerChannelsGenome
 from genetics.knn_genome import KNNGenome
 from genetics.lstm_genome import LstmGenome
@@ -30,6 +31,7 @@ def optimize_genomes() -> None:
     genome_types = [KNNGenome, MLPGenome, RandomForestGenome]
     # genome_types = [CNNGenome]
     # genome_types = [LstmGenome]
+    # genome_types = [EnsembleGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:

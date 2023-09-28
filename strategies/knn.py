@@ -62,10 +62,10 @@ class KNNStrategy(Strategy):
         bid_pips_down_error_avg = np.array(self.bid_pips_down_errors).mean() if len(
             self.bid_pips_down_errors) > 0 else 0
 
-        ask_pips_up_pred = ask_pips_up_pred + (ask_pips_up_error_avg * self.error_multiplier)
-        ask_pips_down_pred = ask_pips_down_pred + (ask_pips_down_error_avg * self.error_multiplier)
-        bid_pips_up_pred = bid_pips_up_pred + (bid_pips_up_error_avg * self.error_multiplier)
-        bid_pips_down_pred = bid_pips_down_pred + (bid_pips_down_error_avg * self.error_multiplier)
+        ask_pips_up_pred_modified = ask_pips_up_pred + (ask_pips_up_error_avg * self.error_multiplier)
+        ask_pips_down_pred_modified = ask_pips_down_pred + (ask_pips_down_error_avg * self.error_multiplier)
+        bid_pips_up_pred_modified = bid_pips_up_pred + (bid_pips_up_error_avg * self.error_multiplier)
+        bid_pips_down_pred_modified = bid_pips_down_pred + (bid_pips_down_error_avg * self.error_multiplier)
 
         curr_date, curr_ao, curr_bo, curr_mo, curr_bh, curr_al = strategy_data.loc[
             strategy_data.index[curr_idx], ['Date', 'Ask_Open', 'Bid_Open', 'Mid_Open', 'Bid_High', 'Ask_Low']]
@@ -77,11 +77,11 @@ class KNNStrategy(Strategy):
                                                                           self.pips_to_risk_atr_multiplier
 
         # Determine if there is a buy or sell signal
-        buy_signal = max([ask_pips_up_pred, ask_pips_down_pred, bid_pips_up_pred,
-                          bid_pips_down_pred]) == bid_pips_up_pred and (
+        buy_signal = max([ask_pips_up_pred_modified, ask_pips_down_pred_modified, bid_pips_up_pred_modified,
+                          bid_pips_down_pred_modified]) == bid_pips_up_pred_modified and (
                          mid_close1 > ma if ma is not None else True)
-        sell_signal = max([ask_pips_up_pred, ask_pips_down_pred, bid_pips_up_pred,
-                           bid_pips_down_pred]) == ask_pips_down_pred and (
+        sell_signal = max([ask_pips_up_pred_modified, ask_pips_down_pred_modified, bid_pips_up_pred_modified,
+                           bid_pips_down_pred_modified]) == ask_pips_down_pred_modified and (
                           mid_close1 < ma if ma is not None else True)
 
         if self.invert:

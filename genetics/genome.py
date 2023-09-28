@@ -41,7 +41,10 @@ class Genome:
     # strategy values need to be updated as well
     def mutate(self, possible_n_mutations_ratio: float) -> None:
         n_mutatable_features = len(self.features)
-        possible_n_mutations = list(range(int(n_mutatable_features * possible_n_mutations_ratio)))
+        max_mutations = int(n_mutatable_features * possible_n_mutations_ratio)
+        if max_mutations == 0:
+            max_mutations = n_mutatable_features
+        possible_n_mutations = list(range(max_mutations))
         n_mutations = random.choice(possible_n_mutations)
         feature_mutation_indices = random.sample(list(range(n_mutatable_features)), n_mutations)
         keys = list(self.features.keys())

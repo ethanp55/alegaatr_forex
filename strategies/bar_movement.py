@@ -28,6 +28,8 @@ class BarMovement(Strategy):
         mid_opens = list(strategy_data.loc[strategy_data.index[curr_idx - self.lookback:curr_idx], 'Mid_Open'])
         mid_closes = list(strategy_data.loc[strategy_data.index[curr_idx - self.lookback:curr_idx], 'Mid_Close'])
         atrs = list(strategy_data.loc[strategy_data.index[curr_idx - self.lookback:curr_idx], 'atr'])
+        if len(atrs) == 0:
+            print('bm', self.lookback, self.starting_idx, curr_idx)
         avg_atr = sum(atrs) / len(atrs)
 
         atr1, lower_atr_band1, upper_atr_band1, mid_close1 = strategy_data.loc[
