@@ -25,11 +25,11 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 def test_strategies() -> None:
     # List of all of the regular strategies
-    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
-    #               MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
-    #               RSI(), Stochastic(), Supertrend(), BeepBoop()]
+    strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
+                  MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
+                  RSI(), Stochastic(), Supertrend(), BeepBoop()]
 
-    strategies = []
+    # strategies = []
 
     # List of the final results to output
     test_results = []
@@ -60,11 +60,9 @@ def test_strategies() -> None:
                 partial(SimulationRunner.run_simulation, currency_pair=currency_pair, time_frame=time_frame,
                         optimize=False), all_strategies)
 
-            # assert len(results) == len(all_strategies) == 19
-
             # Update the final results
             test_results += [(f'{strategy.name}_{pair_time_frame_str}', result) for strategy, result in
-                             zip(strategies, results)]
+                             zip(all_strategies, results)]
 
     # Sort the results so that the most profitable results are first
     test_results.sort(key=lambda x: x[1].net_reward, reverse=True)
