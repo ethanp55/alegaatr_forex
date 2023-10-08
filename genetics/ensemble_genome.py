@@ -34,12 +34,10 @@ class EnsembleGenome(Genome):
         mlp_model_name = f'MLP_{pair_time_frame_str}'
         rf_model_name = f'RandomForest_{pair_time_frame_str}'
 
-        # all_strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
-        #                   MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(),
-        #                   CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
-        #                   MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
         all_strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
-                          MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend()]
+                          MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(),
+                          CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
+                          MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
         strategies = []
 
         for strategy in all_strategies:
