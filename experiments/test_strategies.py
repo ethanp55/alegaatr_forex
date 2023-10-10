@@ -6,6 +6,7 @@ from strategies.beep_boop import BeepBoop
 from strategies.bollinger_bands import BollingerBands
 from strategies.choc import Choc
 from strategies.cnn import CNNStrategy
+from strategies.ensemble import Ensemble
 from strategies.keltner_channels import KeltnerChannels
 from strategies.knn import KNNStrategy
 from strategies.lstm import LstmStrategy
@@ -27,9 +28,7 @@ def test_strategies() -> None:
     # List of all of the regular strategies
     strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
                   MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
-                  RSI(), Stochastic(), Supertrend(), BeepBoop()]
-
-    # strategies = []
+                  RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble()]
 
     # List of the final results to output
     test_results = []
@@ -46,10 +45,8 @@ def test_strategies() -> None:
             rf_model_name = f'RandomForest_{pair_time_frame_str}'
 
             # List of ML strategies
-            # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
-            #                  MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
-            ml_strategies = [KNNStrategy(knn_model_name), MLPStrategy(mlp_model_name),
-                             RandomForestStrategy(rf_model_name)]
+            ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
+                             MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
 
             # List of all the strategies
             all_strategies = strategies + ml_strategies

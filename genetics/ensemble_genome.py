@@ -1,4 +1,5 @@
 from genetics.genome import GeneticFeature, Genome
+import random
 from strategies.bar_movement import BarMovement
 from strategies.beep_boop import BeepBoop
 from strategies.bollinger_bands import BollingerBands
@@ -18,8 +19,27 @@ from strategies.random_forest import RandomForestStrategy
 from strategies.rsi import RSI
 from strategies.squeeze_pro import SqueezePro
 from strategies.stochastic import Stochastic
+from strategies.strategy import Strategy
 from strategies.supertrend import Supertrend
-from typing import Dict
+from typing import Dict, List
+
+
+class EnsembleGeneticFeature(GeneticFeature):
+    def __init__(self, strategies: List[Strategy]) -> None:
+        self.possible_strategies = strategies
+        super().__init__(None)
+
+    def mutate(self) -> None:
+        self.concrete_value = []
+
+        for i in range(len(self.possible_strategies)):
+            if random.choice([0, 1]) == 1:
+                self.concrete_value.append(self.possible_strategies[i])
+
+        # Make sure there is at least 1 strategy in the list of strategies
+        if len(self.concrete_value) == 0:
+            random_idx = random.choice(list(range(0, len(self.possible_strategies))))
+            self.concrete_value.append(self.possible_strategies[random_idx])
 
 
 class EnsembleGenome(Genome):
@@ -38,39 +58,11 @@ class EnsembleGenome(Genome):
                           MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(),
                           CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
                           MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
-        strategies = []
 
-        for strategy in all_strategies:
-            try:
-                strategy.load_best_parameters(self.currency_pair, self.time_frame)
-                strategies.append(strategy)
-
-            except:
-                # If the strategy doesn't have parameters for the current pair and time frame, skip it
-                pass
-
-        def _powerset(s):
-            x = len(s)
-            masks = [1 << i for i in range(x)]
-
-            for i in range(1 << x):
-                yield [ss for mask, ss in zip(masks, s) if i & mask]
-
-        # Calculate all possible strategy combinations (the powerset, or set of all subsets)
-        strategies_powerset = _powerset(strategies)
-
-        # Make sure to only use strategy subsets that have at least 2 strategies in them (a single strategy is the
-        # same as using that strategy by itself, which we already have code for)
-        filtered_strategies_powerset = []
-
-        for strategy_subset in strategies_powerset:
-            if len(strategy_subset) >= 2:
-                filtered_strategies_powerset.append(strategy_subset)
-
-        strategy_pool_feature = GeneticFeature(filtered_strategies_powerset)
+        strategy_pool_index_feature = EnsembleGeneticFeature(all_strategies)
         min_num_predictions_feature = GeneticFeature([2, 3, 5, 7, 9])
 
-        feature_dictionary = {'strategy_pool': strategy_pool_feature,
+        feature_dictionary = {'strategy_pool': strategy_pool_index_feature,
                               'min_num_predictions': min_num_predictions_feature}
 
         return feature_dictionary
