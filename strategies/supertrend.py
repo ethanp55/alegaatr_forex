@@ -3,20 +3,17 @@ from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
 from strategies.strategy import Strategy
-from typing import Callable, Optional
-from utils.technical_indicators import TechnicalIndicators
+from typing import Optional
 
 
 class Supertrend(Strategy):
     def __init__(self, starting_idx: int = 2,
-                 data_format_function: Callable[
-                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_supertrend,
                  percent_to_risk: float = 0.02, ma_key: Optional[str] = 'smma200',
                  invert: bool = False, use_tsl: bool = False, pips_to_risk: Optional[int] = 50,
                  pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
                  use_qqe_mod: bool = False,
                  close_trade_incrementally: bool = False) -> None:
-        super().__init__(starting_idx, data_format_function, percent_to_risk, 'Supertrend')
+        super().__init__(starting_idx, percent_to_risk, 'Supertrend')
         self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
         self.risk_reward_ratio, self.use_qqe_mod, self.close_trade_incrementally = ma_key, invert, use_tsl, pips_to_risk, \
                                                                                    pips_to_risk_atr_multiplier, risk_reward_ratio, use_qqe_mod, close_trade_incrementally

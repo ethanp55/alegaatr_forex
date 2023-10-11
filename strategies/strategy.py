@@ -5,15 +5,13 @@ import pickle
 from market_proxy.trade import Trade, TradeType
 from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
-from typing import Callable, Optional
+from typing import Optional
 
 
 # Abstract strategies class that each specific strategies must implement
 class Strategy:
-    def __init__(self, starting_idx: int, data_format_function: Callable[[DataFrame], DataFrame],
-                 percent_to_risk: float, name: str) -> None:
+    def __init__(self, starting_idx: int, percent_to_risk: float, name: str) -> None:
         self.starting_idx = starting_idx
-        self.data_format_function = data_format_function
         self.percent_to_risk = percent_to_risk
         self.name = name
 
@@ -30,9 +28,6 @@ class Strategy:
 
             if attribute_name == 'lookback' or attribute_name == 'n_in_a_row':
                 self.__setattr__('starting_idx', val)
-
-        # self.__setattr__('use_tsl', True)
-        # self.__setattr__('close_trade_incrementally', True)
 
     # Each strategies has unique rules to determine if a trade should be placed
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \

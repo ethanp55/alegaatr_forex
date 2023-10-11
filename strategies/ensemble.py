@@ -3,17 +3,14 @@ from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
 from strategies.strategy import Strategy
-from typing import Callable, List, Optional
-from utils.technical_indicators import TechnicalIndicators
+from typing import List, Optional
 
 
 class Ensemble(Strategy):
     def __init__(self, starting_idx: int = 1,
-                 data_format_function: Callable[
-                     [DataFrame], DataFrame] = TechnicalIndicators.format_for_all_possible_strategies,
                  percent_to_risk: float = 0.02, strategy_pool: List[Strategy] = [],
                  min_num_predictions: int = 3) -> None:
-        super().__init__(starting_idx, data_format_function, percent_to_risk, 'Ensemble')
+        super().__init__(starting_idx, percent_to_risk, 'Ensemble')
         self.strategy_pool, self.min_num_predictions = strategy_pool, min_num_predictions
         self.use_tsl, self.close_trade_incrementally = False, False
         self.min_idx = 0

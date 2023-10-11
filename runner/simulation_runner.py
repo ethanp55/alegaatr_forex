@@ -7,8 +7,8 @@ from strategies.strategy import Strategy
 
 class SimulationRunner(object):
     @staticmethod
-    def run_simulation(strategy: Strategy, currency_pair: str, time_frame: str,
-                       optimize: bool) -> MarketSimulationResults:
+    def run_simulation(strategy: Strategy, currency_pair: str, time_frame: str, optimize: bool,
+                       train_aat: bool = False) -> MarketSimulationResults:
         market_data_raw = DataLoader.load_simulation_data(currency_pair, 'M5', optimize)
         strategy_data_raw = DataLoader.load_simulation_data(currency_pair, time_frame, optimize, '2015-2023')
 
@@ -22,4 +22,5 @@ class SimulationRunner(object):
             return MarketSimulationResults(-np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf,
                                            -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf)
 
-        return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair)
+        return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair, time_frame,
+                                              train_aat=train_aat)

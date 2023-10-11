@@ -3,18 +3,16 @@ from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
 from pandas import DataFrame
 from strategies.strategy import Strategy
-from typing import Callable, Optional
-from utils.technical_indicators import TechnicalIndicators
+from typing import Optional
 
 
 class MACD(Strategy):
     def __init__(self, starting_idx: int = 2,
-                 data_format_function: Callable[[DataFrame], DataFrame] = TechnicalIndicators.format_data_for_macd,
                  percent_to_risk: float = 0.02, macd_type: str = 'macd', ma_key: Optional[str] = 'smma200',
                  macd_threshold: float = 0.0, invert: bool = False, use_tsl: bool = False,
                  pips_to_risk: Optional[int] = 50, pips_to_risk_atr_multiplier: float = 5.0,
                  risk_reward_ratio: Optional[float] = 1.5, close_trade_incrementally: bool = False) -> None:
-        super().__init__(starting_idx, data_format_function, percent_to_risk, 'MACD')
+        super().__init__(starting_idx, percent_to_risk, 'MACD')
         self.macd_type, self.ma_key, self.macd_threshold, self.invert, self.use_tsl, self.pips_to_risk, \
         self.pips_to_risk_atr_multiplier, self.risk_reward_ratio, self.close_trade_incrementally = macd_type, ma_key, macd_threshold, invert, use_tsl, \
                                                                                                    pips_to_risk, pips_to_risk_atr_multiplier, \

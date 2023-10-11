@@ -1,3 +1,4 @@
+from aat.aat_trainer import AATTrainer
 from datetime import datetime
 from pandas import DataFrame
 from market_proxy.market_calculations import MarketCalculations
@@ -6,20 +7,22 @@ from market_proxy.trade import Trade, TradeType
 import numpy as np
 from strategies.strategy import Strategy
 from typing import Optional
+from utils.technical_indicators import TechnicalIndicators
 
 
 class MarketSimulator(object):
     @staticmethod
     def run_simulation(strategy: Strategy, market_data_raw: DataFrame, strategy_data_raw: DataFrame, currency_pair: str,
-                       starting_balance: float = 10000.0) -> MarketSimulationResults:
+                       time_frame: str, starting_balance: float = 10000.0,
+                       train_aat: bool = False) -> MarketSimulationResults:
         # Numerical results we keep track of
         simulation_results = MarketSimulationResults(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, starting_balance, starting_balance,
                                                      starting_balance, starting_balance, 0, 0)
         pips_risked, curr_trade = [], None
         i = strategy.starting_idx
 
-        # Format the strategies data (each strategies has specific indicators it uses)
-        strategy_data = strategy.data_format_function(strategy_data_raw.copy())
+        # Format the strategy's data
+        strategy_data = TechnicalIndicators.format_for_all_possible_strategies(strategy_data_raw.copy())
 
         # Helper function for iterating through a trade on the smaller (5 minute) time frame
         def _iterate_through_trade(trade: Trade) -> Optional[datetime]:
@@ -45,6 +48,10 @@ class MarketSimulator(object):
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
 
+                    # Create the AAT correction term, if we're training AAT
+                    if train_aat:
+                        aat_trainer.add_correction_term(trade_amount)
+
                     return curr_date
 
                 # Condition 2 - Trade is a buy and the take profit/stop gain is hit
@@ -54,6 +61,10 @@ class MarketSimulator(object):
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
 
+                    # Create the AAT correction term, if we're training AAT
+                    if train_aat:
+                        aat_trainer.add_correction_term(trade_amount)
+
                     return curr_date
 
                 # Condition 3 - trade is a sell and the stop loss is hit
@@ -61,6 +72,10 @@ class MarketSimulator(object):
                     trade_amount = (trade.open_price - trade.stop_loss) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
+
+                    # Create the AAT correction term, if we're training AAT
+                    if train_aat:
+                        aat_trainer.add_correction_term(trade_amount)
 
                     return curr_date
 
@@ -70,6 +85,10 @@ class MarketSimulator(object):
                     trade_amount = (trade.open_price - trade.stop_gain) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
+
+                    # Create the AAT correction term, if we're training AAT
+                    if train_aat:
+                        aat_trainer.add_correction_term(trade_amount)
 
                     return curr_date
 
@@ -85,6 +104,9 @@ class MarketSimulator(object):
 
             # If we get to the end of the smaller data frame without returning, that means the simulation is done
             return None
+
+        # Create an AAT trainer (will only be used if we're running this simulation to train AAT)
+        aat_trainer = AATTrainer(currency_pair, strategy.name, time_frame)
 
         # Iterate through the strategies data (either on the H4, H1, or M30 time frames)
         while i < len(strategy_data):
@@ -108,6 +130,10 @@ class MarketSimulator(object):
                 else:
                     raise Exception(f'Invalid trade type on the following trade: {curr_trade}')
 
+                # Update AAT, if we're training it
+                if train_aat:
+                    aat_trainer.create_new_tuple(strategy_data, i, curr_trade)
+
                 # Iterate through the 5-minute data to simulate the trade
                 trade_end_date = _iterate_through_trade(curr_trade)
                 curr_trade = None
@@ -124,6 +150,10 @@ class MarketSimulator(object):
             # Otherwise, increment i
             else:
                 i += 1
+
+        # Save the AAT training data, if we're training
+        if train_aat:
+            aat_trainer.save()
 
         # Return the simulation results once we've iterated through all the data
         simulation_results.avg_pips_risked = np.array(pips_risked).mean() if len(pips_risked) > 0 else 0

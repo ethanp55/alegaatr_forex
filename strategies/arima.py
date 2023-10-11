@@ -13,20 +13,17 @@ from models.arima import Arima
 import numpy as np
 from pandas import DataFrame
 from strategies.strategy import Strategy
-from typing import Callable, Optional
-from utils.technical_indicators import TechnicalIndicators
+from typing import Optional
 
 
 class ArimaStrategy(Strategy):
     def __init__(self, model_name: str, starting_idx: int = 1,
-                 data_format_function: Callable[
-                     [DataFrame], DataFrame] = TechnicalIndicators.format_data_for_ml_model_for_simulation,
                  percent_to_risk: float = 0.02, periods_offset: int = 0, ma_key: Optional[str] = 'smma200',
                  invert: bool = False, use_tsl: bool = False, pips_to_risk: Optional[int] = 50,
                  pips_to_risk_atr_multiplier: float = 2.0, risk_reward_ratio: Optional[float] = 1.5,
                  error_multiplier: float = 0.0,
                  close_trade_incrementally: bool = False) -> None:
-        super().__init__(starting_idx, data_format_function, percent_to_risk, 'Arima')
+        super().__init__(starting_idx, percent_to_risk, 'Arima')
         self.periods_offset, self.ma_key, self.invert, self.use_tsl, self.pips_to_risk, self.pips_to_risk_atr_multiplier, \
         self.risk_reward_ratio, self.error_multiplier, self.close_trade_incrementally = periods_offset, ma_key, invert, use_tsl, pips_to_risk, \
                                                                                         pips_to_risk_atr_multiplier, risk_reward_ratio, error_multiplier, close_trade_incrementally
