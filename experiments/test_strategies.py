@@ -1,6 +1,7 @@
 from functools import partial
 from multiprocessing import Pool
 from runner.simulation_runner import SimulationRunner
+from strategies.alegaatr import AlegAATr
 from strategies.bar_movement import BarMovement
 from strategies.beep_boop import BeepBoop
 from strategies.bollinger_bands import BollingerBands
@@ -28,7 +29,7 @@ def test_strategies() -> None:
     # List of all of the regular strategies
     strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
                   MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
-                  RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble()]
+                  RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble(), AlegAATr()]
 
     # List of the final results to output
     test_results = []

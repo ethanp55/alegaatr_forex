@@ -1,11 +1,12 @@
 from functools import partial
-from genetics.genetic_algorithm import GeneticAlgorithm
+from genetics.alegaatr_genome import AlegAATrGenome
 from genetics.bar_movement_genome import BarMovementGenome
 from genetics.beep_boop_genome import BeepBoopGenome
 from genetics.bollinger_bands_genome import BollingerBandsGenome
 from genetics.choc_genome import ChocGenome
 from genetics.cnn_genome import CNNGenome
 from genetics.ensemble_genome import EnsembleGenome
+from genetics.genetic_algorithm import GeneticAlgorithm
 from genetics.keltner_channels_genome import KeltnerChannelsGenome
 from genetics.knn_genome import KNNGenome
 from genetics.lstm_genome import LstmGenome
@@ -28,7 +29,8 @@ def optimize_genomes() -> None:
     genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
                     KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
                     RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
-                    RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome]
+                    RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome]
+    # genome_types = [AlegAATrGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:

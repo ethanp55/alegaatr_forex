@@ -21,7 +21,7 @@ class Strategy:
         best_params_dictionary = pickle.load(
             open(f'../genetics/best_genome_features/{self.name}_{pair_time_frame_str}_features.pickle', 'rb'))
 
-        print(f'Best parameters for {self.name} on {pair_time_frame_str}:\n{best_params_dictionary}')
+        # print(f'Best parameters for {self.name} on {pair_time_frame_str}:\n{best_params_dictionary}')
 
         for attribute_name, val in best_params_dictionary.items():
             self.__setattr__(attribute_name, val)
