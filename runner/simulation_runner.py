@@ -1,14 +1,17 @@
 from data.data_loader import DataLoader
+from experiments.metrics_tracker import MetricsTracker
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.market_simulator import MarketSimulator
 import numpy as np
 from strategies.strategy import Strategy
+from typing import Optional
 
 
 class SimulationRunner(object):
     @staticmethod
     def run_simulation(strategy: Strategy, currency_pair: str, time_frame: str, optimize: bool,
-                       train_aat: bool = False) -> MarketSimulationResults:
+                       train_aat: bool = False,
+                       metrics_tracker: Optional[MetricsTracker] = None) -> MarketSimulationResults:
         market_data_raw = DataLoader.load_simulation_data(currency_pair, 'M5', optimize)
         strategy_data_raw = DataLoader.load_simulation_data(currency_pair, time_frame, optimize, '2015-2023')
 
@@ -23,4 +26,4 @@ class SimulationRunner(object):
                                            -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf)
 
         return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair, time_frame,
-                                              train_aat=train_aat)
+                                              train_aat=train_aat, metrics_tracker=metrics_tracker)

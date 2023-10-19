@@ -59,7 +59,17 @@ class EnsembleGenome(Genome):
                           CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
                           MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
 
-        strategy_pool_index_feature = EnsembleGeneticFeature(all_strategies)
+        strategies = []
+
+        for strategy in all_strategies:
+            try:
+                strategy.load_best_parameters(self.currency_pair, self.time_frame)
+                strategies.append(strategy)
+
+            except:
+                continue
+
+        strategy_pool_index_feature = EnsembleGeneticFeature(strategies)
         min_num_predictions_feature = GeneticFeature([2, 3, 5, 7, 9])
 
         feature_dictionary = {'strategy_pool': strategy_pool_index_feature,

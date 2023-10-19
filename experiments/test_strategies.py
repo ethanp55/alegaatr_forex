@@ -1,5 +1,4 @@
-from functools import partial
-from multiprocessing import Pool
+from experiments.metrics_tracker import MetricsTracker
 from runner.simulation_runner import SimulationRunner
 from strategies.alegaatr import AlegAATr
 from strategies.bar_movement import BarMovement
@@ -29,14 +28,20 @@ def test_strategies() -> None:
     # List of all of the regular strategies
     strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
                   MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
-                  RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble(), AlegAATr()]
+                  RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble()]
+    # strategies = [AlegAATr()]
 
     # List of the final results to output
     test_results = []
 
+    # Tracker to keep track of various metrics
+    metrics_tracker = MetricsTracker()
+
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
             pair_time_frame_str = f'{currency_pair}_{time_frame}'
+
+            print(pair_time_frame_str)
 
             # Model names for the ML strategies (they need to load in pair-time-specific data)
             cnn_model_name = f'CNN_{pair_time_frame_str}'
@@ -48,19 +53,22 @@ def test_strategies() -> None:
             # List of ML strategies
             ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
                              MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
+            # ml_strategies = []
 
             # List of all the strategies
             all_strategies = strategies + ml_strategies
 
-            # Creates a new process for each strategy
-            pool = Pool(processes=len(all_strategies))
-            results = pool.map(
-                partial(SimulationRunner.run_simulation, currency_pair=currency_pair, time_frame=time_frame,
-                        optimize=False), all_strategies)
+            for strategy in all_strategies:
+                print(strategy.name)
 
-            # Update the final results
-            test_results += [(f'{strategy.name}_{pair_time_frame_str}', result) for strategy, result in
-                             zip(all_strategies, results)]
+                result = SimulationRunner.run_simulation(strategy, currency_pair, time_frame, False, False,
+                                                         metrics_tracker)
+
+                # Update the final results
+                test_results.append((f'{strategy.name}_{pair_time_frame_str}', result))
+
+    # Save any metric data in order to perform analysis offline
+    metrics_tracker.save_data([strategy.name for strategy in all_strategies])
 
     # Sort the results so that the most profitable results are first
     test_results.sort(key=lambda x: x[1].net_reward, reverse=True)
@@ -82,3 +90,7 @@ def test_strategies() -> None:
 
 if __name__ == "__main__":
     test_strategies()
+
+# For AlegAATr:
+#   - Track prediction values when they end up being wrong (might be useful to see how far off they are)
+#   - Track prediction values when they end up being correct

@@ -1,5 +1,7 @@
 from aat.aat_trainer import AATTrainer
 from datetime import datetime
+from experiments.metrics_tracker import MetricsTracker
+import os.path
 from pandas import DataFrame
 from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
@@ -14,7 +16,8 @@ class MarketSimulator(object):
     @staticmethod
     def run_simulation(strategy: Strategy, market_data_raw: DataFrame, strategy_data_raw: DataFrame, currency_pair: str,
                        time_frame: str, starting_balance: float = 10000.0,
-                       train_aat: bool = False) -> MarketSimulationResults:
+                       train_aat: bool = False,
+                       metrics_tracker: Optional[MetricsTracker] = None) -> MarketSimulationResults:
         # Numerical results we keep track of
         simulation_results = MarketSimulationResults(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, starting_balance, starting_balance,
                                                      starting_balance, starting_balance, 0, 0)
@@ -52,6 +55,11 @@ class MarketSimulator(object):
                     if train_aat:
                         aat_trainer.add_correction_term(trade_amount)
 
+                    # Update the metrics tracker, if required
+                    if metrics_tracker is not None:
+                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
+                                                             simulation_results.account_balance)
+
                     return curr_date
 
                 # Condition 2 - Trade is a buy and the take profit/stop gain is hit
@@ -65,6 +73,11 @@ class MarketSimulator(object):
                     if train_aat:
                         aat_trainer.add_correction_term(trade_amount)
 
+                    # Update the metrics tracker, if required
+                    if metrics_tracker is not None:
+                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
+                                                             simulation_results.account_balance)
+
                     return curr_date
 
                 # Condition 3 - trade is a sell and the stop loss is hit
@@ -76,6 +89,11 @@ class MarketSimulator(object):
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:
                         aat_trainer.add_correction_term(trade_amount)
+
+                    # Update the metrics tracker, if required
+                    if metrics_tracker is not None:
+                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
+                                                             simulation_results.account_balance)
 
                     return curr_date
 
@@ -89,6 +107,11 @@ class MarketSimulator(object):
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:
                         aat_trainer.add_correction_term(trade_amount)
+
+                    # Update the metrics tracker, if required
+                    if metrics_tracker is not None:
+                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
+                                                             simulation_results.account_balance)
 
                     return curr_date
 
@@ -107,6 +130,12 @@ class MarketSimulator(object):
 
         # Create an AAT trainer (will only be used if we're running this simulation to train AAT)
         aat_trainer = AATTrainer(currency_pair, strategy.name, time_frame)
+
+        # Keep track of whether the strategy is profitable in training, if required
+        if metrics_tracker is not None:
+            features_file_name = f'{strategy.name}_{currency_pair}_{time_frame}_features.pickle'
+            profitable = os.path.exists(f'../genetics/best_genome_features/{features_file_name}')
+            metrics_tracker.increment_profitable_training(strategy.name, currency_pair, time_frame, profitable)
 
         # Iterate through the strategies data (either on the H4, H1, or M30 time frames)
         while i < len(strategy_data):
@@ -154,6 +183,13 @@ class MarketSimulator(object):
         # Save the AAT training data, if we're training
         if train_aat:
             aat_trainer.save()
+
+        # Keep track of whether the strategy is profitable in testing and the final balance, if required
+        if metrics_tracker is not None:
+            profitable = simulation_results.net_reward > 0
+            metrics_tracker.increment_profitable_testing(strategy.name, currency_pair, time_frame, profitable)
+            metrics_tracker.update_final_balance(strategy.name, currency_pair, time_frame,
+                                                 simulation_results.account_balance)
 
         # Return the simulation results once we've iterated through all the data
         simulation_results.avg_pips_risked = np.array(pips_risked).mean() if len(pips_risked) > 0 else 0
