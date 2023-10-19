@@ -23,7 +23,7 @@ def train_models() -> None:
             pips_multiplier = 100 if 'Jpy' in currency_pair else 10000
 
             # Load a training data frame for each currency pair and time frame
-            data_file = f'./data/files/Oanda_{pair_time_frame_str}_2015-2023.csv'
+            data_file = f'../data/files/Oanda_{pair_time_frame_str}_2015-2023.csv'
             df_train = DataLoader.load_training_data(
                 data_file, pips_multiplier)
 

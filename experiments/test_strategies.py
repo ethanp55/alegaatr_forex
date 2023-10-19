@@ -26,10 +26,10 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 def test_strategies() -> None:
     # List of all of the regular strategies
-    strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
-                  MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
-                  RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble()]
-    # strategies = [AlegAATr()]
+    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
+    #               MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
+    #               RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble(), AlegAATr()]
+    strategies = [AlegAATr()]
 
     # List of the final results to output
     test_results = []
@@ -51,9 +51,9 @@ def test_strategies() -> None:
             rf_model_name = f'RandomForest_{pair_time_frame_str}'
 
             # List of ML strategies
-            ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
-                             MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
-            # ml_strategies = []
+            # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
+            #                  MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
+            ml_strategies = []
 
             # List of all the strategies
             all_strategies = strategies + ml_strategies
@@ -66,6 +66,8 @@ def test_strategies() -> None:
 
                 # Update the final results
                 test_results.append((f'{strategy.name}_{pair_time_frame_str}', result))
+
+            print()
 
     # Save any metric data in order to perform analysis offline
     metrics_tracker.save_data([strategy.name for strategy in all_strategies])
