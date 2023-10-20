@@ -28,6 +28,7 @@ def create_plots() -> None:
 
                     # Plot for each strategy
                     x = range(0, len(values))
+                    plt.grid()
                     plt.plot(x, values)
                     plt.xlabel('Time')
                     plt.ylabel('Account Balance')
@@ -39,6 +40,8 @@ def create_plots() -> None:
                 # Plot containing all strategies
                 x = list(range(0, max_len))
                 x_common = np.array(x)
+                plt.figure(figsize=(10, 6))
+                plt.grid()
 
                 for i in range(len(account_values)):
                     values, strategy_name = account_values[i], strategy_names[i]
@@ -55,7 +58,9 @@ def create_plots() -> None:
                 plt.xlabel('Time')
                 plt.ylabel('Account Balance')
                 plt.title('Account Balances Over Time')
-                plt.legend(loc='best')
+                legend = plt.legend(loc='best')
+                for text in legend.get_texts():
+                    text.set_fontsize(8)
                 plt.savefig(f'../experiments/plots/{pair_time_str}_account_values', bbox_inches='tight')
                 plt.clf()
 
@@ -79,10 +84,12 @@ def create_plots() -> None:
                 # Bar graph containing final balances for each strategy
                 cmap = get_cmap('tab20')
                 bar_colors = [cmap(i % 20) for i in range(len(strategy_names))]
+                plt.figure(figsize=(20, 12))
                 plt.bar(strategy_names, final_balances, color=bar_colors)
-                plt.xlabel('Strategy')
-                plt.ylabel('Final Account Balance')
-                plt.title(f'Final Account Balances For {currency_pair} {time_frame}')
+                plt.xlabel('Strategy', fontsize=20)
+                plt.xticks(rotation=45)
+                plt.ylabel('Final Account Balance', fontsize=20)
+                plt.title(f'Final Account Balances For {currency_pair} {time_frame}', fontsize=26)
                 plt.savefig(f'../experiments/plots/{pair_time_str}_final_balances', bbox_inches='tight')
                 plt.clf()
 
