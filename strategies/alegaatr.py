@@ -34,6 +34,50 @@ class AlegAATr(Strategy):
         self.min_num_predictions, self.use_single_selection = min_num_predictions, use_single_selection
         self.use_tsl, self.close_trade_incrementally = False, False
         self.min_idx = 0
+        self.prev_prediction = None
+        self.predictions_when_wrong, self.trade_values_when_wrong = [], []
+        self.predictions_when_correct, self.trade_values_when_correct = [], []
+
+    def print_parameters(self) -> None:
+        print(f'min_num_predictions: {self.min_num_predictions}')
+        print(f'use_single_selection: {self.use_single_selection}')
+
+    def _clear_metric_tracking_vars(self) -> None:
+        self.prev_prediction = None
+        self.predictions_when_wrong.clear()
+        self.trade_values_when_wrong.clear()
+        self.predictions_when_correct.clear()
+        self.trade_values_when_correct.clear()
+
+    def update_metric_tracking_vars(self, trade_value: float) -> None:
+        # Win
+        if trade_value > 0:
+            self.predictions_when_correct.append(self.prev_prediction)
+            self.trade_values_when_correct.append(trade_value)
+
+        # Loss
+        else:
+            self.predictions_when_wrong.append(self.prev_prediction)
+            self.trade_values_when_wrong.append(trade_value)
+
+        self.prev_prediction = None
+
+    def save_metric_tracking_vars(self, currency_pair: str, time_frame: str) -> None:
+        file_path = f'../experiments/results/alegaatr_metrics/{currency_pair}_{time_frame}'
+
+        with open(f'{file_path}_predictions_when_wrong.pickle', 'wb') as f:
+            pickle.dump(self.predictions_when_wrong, f)
+
+        with open(f'{file_path}_trade_values_when_wrong.pickle', 'wb') as f:
+            pickle.dump(self.trade_values_when_wrong, f)
+
+        with open(f'{file_path}_predictions_when_correct.pickle', 'wb') as f:
+            pickle.dump(self.predictions_when_correct, f)
+
+        with open(f'{file_path}_trade_values_when_correct.pickle', 'wb') as f:
+            pickle.dump(self.trade_values_when_correct, f)
+
+        self._clear_metric_tracking_vars()
 
     def load_best_parameters(self, currency_pair: str, time_frame: str) -> None:
         try:
@@ -133,6 +177,9 @@ class AlegAATr(Strategy):
             strategy_data.index[curr_idx], ['Date', 'Ask_Open', 'Bid_Open', 'Mid_Open', 'Bid_High', 'Ask_Low']]
         spread = abs(curr_ao - curr_bo)
 
+        # Predicted trade value
+        trade_value = np.array(amount_predictions).mean()
+
         for i in range(len(trades)):
             (trade, generator), amount_prediction = trades[i], amount_predictions[i]
             amount_prediction_weight = amount_prediction / amount_predictions_sum
@@ -178,6 +225,7 @@ class AlegAATr(Strategy):
 
                 self.use_tsl = n_buy_use_tsl >= n_buys * 0.5
                 self.close_trade_incrementally = n_buy_close_trade_incrementally >= n_buys * 0.5
+                self.prev_prediction = trade_value
 
                 return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
                              currency_pair)
@@ -199,6 +247,7 @@ class AlegAATr(Strategy):
 
                 self.use_tsl = n_sell_use_tsl >= n_sells * 0.5
                 self.close_trade_incrementally = n_sell_close_trade_incrementally >= n_sells * 0.5
+                self.prev_prediction = trade_value
 
                 return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
                              currency_pair)
@@ -246,7 +295,11 @@ class AlegAATr(Strategy):
                         self.use_tsl, self.close_trade_incrementally = \
                             generator.use_tsl, generator.close_trade_incrementally
 
-        return best_trade if n_profitable_predictions >= self.min_num_predictions else None
+        if n_profitable_predictions >= self.min_num_predictions:
+            self.prev_prediction = best_trade_amount
+            return best_trade
+
+        return None
 
     def move_stop_loss(self, curr_idx: int, market_data: DataFrame, trade: Trade) -> Trade:
         if self.use_tsl:

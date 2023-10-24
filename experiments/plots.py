@@ -32,7 +32,7 @@ def create_plots() -> None:
                     plt.plot(x, values)
                     plt.xlabel('Time')
                     plt.ylabel('Account Balance')
-                    plt.title(f'Account Balances Over Time For {strategy_name}')
+                    plt.title(f'Account Balances Over Time For {strategy_name} on {currency_pair} {time_frame}')
                     plt.savefig(f'../experiments/plots/{strategy_name}_{pair_time_str}_account_values',
                                 bbox_inches='tight')
                     plt.clf()
@@ -57,7 +57,7 @@ def create_plots() -> None:
 
                 plt.xlabel('Time')
                 plt.ylabel('Account Balance')
-                plt.title('Account Balances Over Time')
+                plt.title(f'Account Balances Over Time on {currency_pair} {time_frame}')
                 legend = plt.legend(loc='best')
                 for text in legend.get_texts():
                     text.set_fontsize(8)
@@ -89,7 +89,7 @@ def create_plots() -> None:
                 plt.xlabel('Strategy', fontsize=20)
                 plt.xticks(rotation=45)
                 plt.ylabel('Final Account Balance', fontsize=20)
-                plt.title(f'Final Account Balances For {currency_pair} {time_frame}', fontsize=26)
+                plt.title(f'Final Account Balances on {currency_pair} {time_frame}', fontsize=26)
                 plt.savefig(f'../experiments/plots/{pair_time_str}_final_balances', bbox_inches='tight')
                 plt.clf()
 

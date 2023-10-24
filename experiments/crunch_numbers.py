@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
+from utils.utils import TIME_FRAMES
 
 
 def crunch_numbers() -> None:
@@ -80,6 +80,8 @@ def crunch_numbers() -> None:
 
     # Calculate profit sums
     total_profit()
+
+    print()
 
     # Print out profit ratios
     profitable_ratios()

@@ -39,7 +39,7 @@ class AATTrainer:
         name_pair_time_str = f'{self.strategy_name}_{self.currency_pair}_{self.time_frame}'
 
         x = np.array(self.training_data, dtype=float)[:, 0:-2]  # Assumptions - convert any booleans to floats
-        y = np.array(self.training_data)[:, -2]  # Correction terms
+        y = np.array(self.training_data)[:, -1]  # Correction terms
 
         print(f'X and Y data for {name_pair_time_str}')
         print('X train shape: ' + str(x.shape))

@@ -1,4 +1,5 @@
 import pickle
+from strategies.strategy import Strategy
 from typing import List
 
 
@@ -12,6 +13,9 @@ class MetricsTracker:
     def __init__(self) -> None:
         self.trade_amounts, self.account_values, self.final_balances = {}, {}, {}
         self.profitable_training, self.profitable_testing, self.profitable_ratios = {}, {}, {}
+
+    def update_alegaatr_metric_tracking_vars(self, alegaatr: Strategy, trade_value: float) -> None:
+        alegaatr.update_metric_tracking_vars(trade_value)
 
     def increment_profitable_training(self, strategy_name: str, currency_pair: str, time_frame: str,
                                       profitable: bool) -> None:
@@ -84,4 +88,5 @@ class MetricsTracker:
             with open(file_location, 'wb') as f:
                 pickle.dump(val, f)
 
-
+    def save_alegaatr_data(self, alegaatr: Strategy, currency_pair: str, time_frame: str) -> None:
+        alegaatr.save_metric_tracking_vars(currency_pair, time_frame)

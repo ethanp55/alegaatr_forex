@@ -15,13 +15,15 @@ class Strategy:
         self.percent_to_risk = percent_to_risk
         self.name = name
 
+    def print_parameters(self) -> None:
+        for name, val in self.__dict__.items():
+            print(f'{name}: {val}')
+
     # Loads in the best parameter values that were estimated by the genetic algorithm
     def load_best_parameters(self, currency_pair: str, time_frame: str) -> None:
         pair_time_frame_str = f'{currency_pair}_{time_frame}'
         best_params_dictionary = pickle.load(
             open(f'../genetics/best_genome_features/{self.name}_{pair_time_frame_str}_features.pickle', 'rb'))
-
-        # print(f'Best parameters for {self.name} on {pair_time_frame_str}:\n{best_params_dictionary}')
 
         for attribute_name, val in best_params_dictionary.items():
             self.__setattr__(attribute_name, val)

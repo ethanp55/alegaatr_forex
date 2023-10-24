@@ -60,6 +60,9 @@ class MarketSimulator(object):
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
                                                              simulation_results.account_balance)
 
+                        if strategy.name == 'AlegAATr':
+                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
+
                     return curr_date
 
                 # Condition 2 - Trade is a buy and the take profit/stop gain is hit
@@ -78,6 +81,9 @@ class MarketSimulator(object):
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
                                                              simulation_results.account_balance)
 
+                        if strategy.name == 'AlegAATr':
+                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
+
                     return curr_date
 
                 # Condition 3 - trade is a sell and the stop loss is hit
@@ -94,6 +100,9 @@ class MarketSimulator(object):
                     if metrics_tracker is not None:
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
                                                              simulation_results.account_balance)
+
+                        if strategy.name == 'AlegAATr':
+                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
 
                     return curr_date
 
@@ -112,6 +121,9 @@ class MarketSimulator(object):
                     if metrics_tracker is not None:
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
                                                              simulation_results.account_balance)
+
+                        if strategy.name == 'AlegAATr':
+                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
 
                     return curr_date
 
@@ -190,6 +202,9 @@ class MarketSimulator(object):
             metrics_tracker.increment_profitable_testing(strategy.name, currency_pair, time_frame, profitable)
             metrics_tracker.update_final_balance(strategy.name, currency_pair, time_frame,
                                                  simulation_results.account_balance)
+
+            if strategy.name == 'AlegAATr':
+                metrics_tracker.save_alegaatr_data(strategy, currency_pair, time_frame)
 
         # Return the simulation results once we've iterated through all the data
         simulation_results.avg_pips_risked = np.array(pips_risked).mean() if len(pips_risked) > 0 else 0
