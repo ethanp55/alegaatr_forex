@@ -26,16 +26,19 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
 def optimize_genomes() -> None:
-    genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
-                    KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
-                    RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
-                    RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome]
+    # genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
+    #                 KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
+    #                 RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
+    #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome]
+    genome_types = [MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome, RSIGenome, StochasticGenome, SupertrendGenome,
+                    BeepBoopGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
             # Creates a new process for each genome type
             pool = Pool(processes=len(genome_types))
-            pool.map(partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame), genome_types)
+            pool.map(partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, n_iterations=7),
+                     genome_types)
 
 
 if __name__ == "__main__":

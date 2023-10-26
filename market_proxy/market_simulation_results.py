@@ -19,6 +19,7 @@ class MarketSimulationResults:
     account_balance: float
     _curr_win_streak: int
     _curr_loss_streak: int
+    validation_net_reward: float = 0
 
     # Helper function to update the simulation results once a trade closes out
     def update_results(self, trade_amount: float, day_fees: float) -> None:

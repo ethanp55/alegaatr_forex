@@ -76,7 +76,18 @@ class GeneticAlgorithm(object):
     # performance.  The 2 genomes can be viewed as "parents"
     @staticmethod
     def _selection(population: Population) -> List[Genome]:
-        random_selection = random.choices(population.genomes, weights=population.performances, k=2)
+        performances = population.performances
+        denominator = max(performances) - min(performances)
+
+        if denominator != 0:
+            weights = [(float(pop) - min(performances)) / denominator for pop in performances]
+            weights = [weight / sum(weights) for weight in weights]
+
+        else:
+            weights = [1 / len(performances) for _ in performances]
+
+        random_selection = random.choices(population.genomes, weights=weights, k=2)
+
         return [deepcopy(genome) for genome in random_selection]
 
     # Performs a single point crossover, where 2 genomes swap part of their features

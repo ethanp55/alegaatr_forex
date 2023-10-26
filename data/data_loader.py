@@ -24,7 +24,7 @@ class DataLoader(object):
 
     @staticmethod
     def load_simulation_data(currency_pair: str, time_frame: str, optimize: bool,
-                             year_range: str = '2021-2023') -> pd.DataFrame:
+                             year_range: str = '2019-2023') -> pd.DataFrame:
         df = pd.read_csv(f'../data/files/Oanda_{currency_pair}_{time_frame}_{year_range}.csv')
         df.Date = pd.to_datetime(df.Date, utc=True)
         df = df.loc[(df['Date'] >= OPTIMIZATION_START_DATE) & (df['Date'] < TEST_START_DATE)] if optimize else df.loc[
