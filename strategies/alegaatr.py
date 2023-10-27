@@ -25,13 +25,14 @@ from typing import Optional
 
 class AlegAATr(Strategy):
     def __init__(self, starting_idx: int = 2, percent_to_risk: float = 0.02, min_num_predictions: int = 3,
-                 use_single_selection: bool = True) -> None:
+                 use_single_selection: bool = True, min_n_neighbors: int = 15) -> None:
         super().__init__(starting_idx, percent_to_risk, 'AlegAATr')
         self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                            MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                           Supertrend(), PSAR(), RSI(), Stochastic(), Supertrend(), BeepBoop()]
+                           Supertrend()]
         self.models, self.correction_terms = {}, {}
-        self.min_num_predictions, self.use_single_selection = min_num_predictions, use_single_selection
+        self.min_num_predictions, self.use_single_selection, self.min_n_neighbors = \
+            min_num_predictions, use_single_selection, min_n_neighbors
         self.use_tsl, self.close_trade_incrementally = False, False
         self.min_idx = 0
         self.prev_prediction = None
@@ -86,6 +87,8 @@ class AlegAATr(Strategy):
         except:
             pass
 
+        self.models, self.correction_terms = {}, {}
+
         for generator in self.generators:
             try:
                 # Make sure the generator is using its "best" parameters for the given currency pair and time frame
@@ -127,11 +130,11 @@ class AlegAATr(Strategy):
         for generator in self.generators:
             trade = generator.place_trade(curr_idx, strategy_data, currency_pair, account_balance)
 
-            if trade is not None:
+            if trade is not None and generator.name in self.models:
                 knn_model, training_data = self.models[generator.name], self.correction_terms[generator.name]
-                n_neighbors = min(len(training_data), 15)
+                n_neighbors = len(training_data)
 
-                if n_neighbors == 15:
+                if n_neighbors >= self.min_n_neighbors:
                     neighbor_distances, neighbor_indices = knn_model.kneighbors(x, n_neighbors)
                     corrections, distances = [], []
                     baseline = abs(trade.open_price - trade.stop_loss) * trade.n_units
@@ -261,11 +264,11 @@ class AlegAATr(Strategy):
         for generator in self.generators:
             trade = generator.place_trade(curr_idx, strategy_data, currency_pair, account_balance)
 
-            if trade is not None:
+            if trade is not None and generator.name in self.models:
                 knn_model, training_data = self.models[generator.name], self.correction_terms[generator.name]
-                n_neighbors = min(len(training_data), 15)
+                n_neighbors = len(training_data)
 
-                if n_neighbors == 15:
+                if n_neighbors >= self.min_n_neighbors:
                     neighbor_distances, neighbor_indices = knn_model.kneighbors(x, n_neighbors)
                     corrections, distances = [], []
                     baseline = abs(trade.open_price - trade.stop_loss) * trade.n_units
