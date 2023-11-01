@@ -55,6 +55,7 @@ class Strategy:
     def close_part_of_trade(self, curr_idx: int, market_data: DataFrame, trade: Trade,
                             simulation_results: MarketSimulationResults, currency_pair: str) -> Optional[Trade]:
         trade_copy = deepcopy(trade)
+        # return trade_copy
         trade_type = trade_copy.trade_type
         curr_date, curr_bid_close, curr_ask_close = market_data.loc[
             market_data.index[curr_idx], ['Date', 'Bid_Close', 'Ask_Close']]

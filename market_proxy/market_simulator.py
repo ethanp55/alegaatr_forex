@@ -198,7 +198,7 @@ class MarketSimulator(object):
 
         # Keep track of whether the strategy is profitable in testing and the final balance, if required
         if metrics_tracker is not None:
-            profitable = simulation_results.net_reward > 0
+            profitable = simulation_results.net_reward >= 0
             metrics_tracker.increment_profitable_testing(strategy.name, currency_pair, time_frame, profitable)
             metrics_tracker.update_final_balance(strategy.name, currency_pair, time_frame,
                                                  simulation_results.account_balance)

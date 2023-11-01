@@ -27,9 +27,12 @@ class AlegAATr(Strategy):
     def __init__(self, starting_idx: int = 2, percent_to_risk: float = 0.02, min_num_predictions: int = 3,
                  use_single_selection: bool = True) -> None:
         super().__init__(starting_idx, percent_to_risk, 'AlegAATr')
+        # self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
+        #                    MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
+        #                    Supertrend(), PSAR(), RSI(), Stochastic(), Supertrend(), BeepBoop()]
         self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                            MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                           Supertrend(), PSAR(), RSI(), Stochastic(), Supertrend(), BeepBoop()]
+                           Supertrend()]
         self.models, self.correction_terms = {}, {}
         self.min_num_predictions, self.use_single_selection = min_num_predictions, use_single_selection
         self.use_tsl, self.close_trade_incrementally = False, False
@@ -101,6 +104,8 @@ class AlegAATr(Strategy):
 
             except:
                 continue
+
+        print(self.use_single_selection, self.min_num_predictions)
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:

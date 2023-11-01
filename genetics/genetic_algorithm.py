@@ -76,7 +76,17 @@ class GeneticAlgorithm(object):
     # performance.  The 2 genomes can be viewed as "parents"
     @staticmethod
     def _selection(population: Population) -> List[Genome]:
-        random_selection = random.choices(population.genomes, weights=population.performances, k=2)
+        performances = population.performances
+        denominator = max(performances) - min(performances)
+
+        if denominator != 0:
+            weights = [(float(pop) - min(performances)) / denominator for pop in performances]
+            weights = [weight / sum(weights) for weight in weights]
+
+        else:
+            weights = [1 / len(performances) for _ in performances]
+
+        random_selection = random.choices(population.genomes, weights=weights, k=2)
         return [deepcopy(genome) for genome in random_selection]
 
     # Performs a single point crossover, where 2 genomes swap part of their features
@@ -87,17 +97,19 @@ class GeneticAlgorithm(object):
         new_a, new_b = a, b
 
         feature_length = len(new_a.features)
-        idx = random.randint(1, feature_length - 1)
 
-        assert (new_a.features.keys() == new_b.features.keys())
+        if feature_length > 1:
+            idx = random.randint(1, feature_length - 1)
 
-        keys = list(new_a.features.keys())
+            assert (new_a.features.keys() == new_b.features.keys())
 
-        for key in keys[idx:]:
-            new_a.features[key].concrete_value, new_b.features[key].concrete_value = \
-                new_b.features[key].concrete_value, new_a.features[key].concrete_value
+            keys = list(new_a.features.keys())
 
-        new_a.set_strategy_attributes()
-        new_b.set_strategy_attributes()
+            for key in keys[idx:]:
+                new_a.features[key].concrete_value, new_b.features[key].concrete_value = \
+                    new_b.features[key].concrete_value, new_a.features[key].concrete_value
+
+            new_a.set_strategy_attributes()
+            new_b.set_strategy_attributes()
 
         return new_a, new_b
