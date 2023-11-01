@@ -51,6 +51,13 @@ class Assumptions:
         nearest_level = round(mid_close, pips_level_rounding)
         self.close_to_nearest_level = abs(mid_close - nearest_level) < atr
 
+        curr_date = df.loc[df.index[curr_idx - 1], 'Date']
+        curr_hour, curr_day = curr_date.hour, curr_date.day
+
+        self.weekday = curr_day in [0, 1, 2, 3]
+        self.nyse_session, self.london_session, self.tokyo_session, self.sydney_session = \
+            13 <= curr_hour < 22, 7 <= curr_hour < 16, 0 <= curr_hour < 9, curr_hour >= 17 or curr_hour < 6
+
         # Store the prediction (how much the trade is worth)
         self.prediction = trade_amount
 

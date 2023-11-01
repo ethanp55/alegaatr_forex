@@ -29,7 +29,7 @@ class AlegAATr(Strategy):
         super().__init__(starting_idx, percent_to_risk, 'AlegAATr')
         self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                            MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                           Supertrend()]
+                           Supertrend(), PSAR(), RSI(), Stochastic(), Supertrend(), BeepBoop()]
         self.models, self.correction_terms = {}, {}
         self.min_num_predictions, self.use_single_selection, self.min_n_neighbors = \
             min_num_predictions, use_single_selection, min_n_neighbors

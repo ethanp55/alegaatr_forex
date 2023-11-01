@@ -5,4 +5,4 @@ TEST_START_DATE = '2022-08-31 00:00:00'  # Start date for when we test the optim
 CURRENCY_PAIRS = ['Eur_Usd', 'Gbp_Chf', 'Usd_Jpy']  # Currency pairs for our experiments
 TIME_FRAMES = ['M30', 'H1', 'H4']  # Time frames for our experiments
 # CURRENCY_PAIRS = ['Gbp_Chf', 'Usd_Jpy']  # Currency pairs for our experiments
-# TIME_FRAMES = ['H1', 'H4']  # Time frames for our experiments
+# TIME_FRAMES = ['M30']  # Time frames for our experiments
