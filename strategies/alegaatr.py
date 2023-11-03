@@ -1,4 +1,5 @@
 from aat.assumptions import Assumptions
+from copy import deepcopy
 from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
@@ -25,16 +26,14 @@ from typing import Optional
 
 class AlegAATr(Strategy):
     def __init__(self, starting_idx: int = 2, percent_to_risk: float = 0.02, min_num_predictions: int = 3,
-                 use_single_selection: bool = True) -> None:
+                 use_single_selection: bool = True, invert: bool = False) -> None:
         super().__init__(starting_idx, percent_to_risk, 'AlegAATr')
-        # self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
-        #                    MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-        #                    Supertrend(), PSAR(), RSI(), Stochastic(), Supertrend(), BeepBoop()]
         self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                            MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
                            Supertrend()]
         self.models, self.correction_terms = {}, {}
-        self.min_num_predictions, self.use_single_selection = min_num_predictions, use_single_selection
+        self.min_num_predictions, self.use_single_selection, self.invert = \
+            min_num_predictions, use_single_selection, invert
         self.use_tsl, self.close_trade_incrementally = False, False
         self.min_idx = 0
         self.prev_prediction = None
@@ -65,8 +64,8 @@ class AlegAATr(Strategy):
 
         self.prev_prediction = None
 
-    def save_metric_tracking_vars(self, currency_pair: str, time_frame: str) -> None:
-        file_path = f'../experiments/results/alegaatr_metrics/{currency_pair}_{time_frame}'
+    def save_metric_tracking_vars(self, currency_pair: str, time_frame: str, year: int) -> None:
+        file_path = f'../experiments/results/alegaatr_metrics/{currency_pair}_{time_frame}_{year}'
 
         with open(f'{file_path}_predictions_when_wrong.pickle', 'wb') as f:
             pickle.dump(self.predictions_when_wrong, f)
@@ -82,9 +81,9 @@ class AlegAATr(Strategy):
 
         self._clear_metric_tracking_vars()
 
-    def load_best_parameters(self, currency_pair: str, time_frame: str) -> None:
+    def load_best_parameters(self, currency_pair: str, time_frame: str, year: int) -> None:
         try:
-            super().load_best_parameters(currency_pair, time_frame)
+            super().load_best_parameters(currency_pair, time_frame, year)
 
         except:
             pass
@@ -92,13 +91,14 @@ class AlegAATr(Strategy):
         for generator in self.generators:
             try:
                 # Make sure the generator is using its "best" parameters for the given currency pair and time frame
-                generator.load_best_parameters(currency_pair, time_frame)
+                generator.load_best_parameters(currency_pair, time_frame, year)
 
                 # Load the KNN model and correction terms for the generator on the given currency pair and time frame
                 strategy_name = generator.name
-                name_pair_time_str = f'{strategy_name}_{currency_pair}_{time_frame}'
-                correction_terms_file_name = f'../aat/training_data/{name_pair_time_str}_aat_correction_terms.pickle'
-                knn_file_name = f'../aat/training_data/{name_pair_time_str}_aat_knn.pickle'
+                name_pair_time_year_str = f'{strategy_name}_{currency_pair}_{time_frame}_{year}'
+                correction_terms_file_name = \
+                    f'../aat/training_data/{name_pair_time_year_str}_aat_correction_terms.pickle'
+                knn_file_name = f'../aat/training_data/{name_pair_time_year_str}_aat_knn.pickle'
                 self.models[strategy_name] = pickle.load(open(knn_file_name, 'rb'))
                 self.correction_terms[strategy_name] = pickle.load(open(correction_terms_file_name, 'rb'))
 
@@ -124,6 +124,33 @@ class AlegAATr(Strategy):
 
         else:
             return self._weighted_ensemble(x, curr_idx, strategy_data, currency_pair, account_balance)
+
+    def _invert(self, trade: Trade, curr_ao: float, curr_bo: float) -> Trade:
+        if self.invert:
+            trade_copy = deepcopy(trade)
+
+            if trade.trade_type == TradeType.BUY:
+                trade_copy.trade_type = TradeType.SELL
+                trade_copy.open_price = curr_bo
+                trade_copy.stop_loss = curr_bo + trade.pips_risked
+
+                if trade.stop_gain is not None:
+                    stop_gain_pips = abs(trade.stop_gain - trade.open_price)
+                    trade_copy.stop_gain = curr_bo - stop_gain_pips
+
+            else:
+                trade_copy.trade_type = TradeType.BUY
+                trade_copy.open_price = curr_ao
+                trade_copy.stop_loss = curr_ao - trade.pips_risked
+
+                if trade.stop_gain is not None:
+                    stop_gain_pips = abs(trade.stop_gain - trade.open_price)
+                    trade_copy.stop_gain = curr_ao + stop_gain_pips
+
+            return trade_copy
+
+        else:
+            return trade
 
     def _weighted_ensemble(self, x: np.array, curr_idx: int, strategy_data: DataFrame, currency_pair: str,
                            account_balance: float) -> Optional[Trade]:
@@ -232,8 +259,10 @@ class AlegAATr(Strategy):
                 self.close_trade_incrementally = n_buy_close_trade_incrementally >= n_buys * 0.5
                 self.prev_prediction = trade_value
 
-                return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
-                             currency_pair)
+                trade = Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
+                              currency_pair)
+
+                return self._invert(trade, curr_ao, curr_bo)
 
         # If there are more sell votes than buy votes and the number of sell votes meets the minimum number of votes,
         # place a sell
@@ -254,8 +283,10 @@ class AlegAATr(Strategy):
                 self.close_trade_incrementally = n_sell_close_trade_incrementally >= n_sells * 0.5
                 self.prev_prediction = trade_value
 
-                return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
-                             currency_pair)
+                trade = Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
+                              currency_pair)
+
+                return self._invert(trade, curr_ao, curr_bo)
 
         return None
 
@@ -302,7 +333,10 @@ class AlegAATr(Strategy):
 
         if n_profitable_predictions >= self.min_num_predictions:
             self.prev_prediction = best_trade_amount
-            return best_trade
+
+            curr_ao, curr_bo = strategy_data.loc[strategy_data.index[curr_idx], ['Ask_Open', 'Bid_Open']]
+
+            return self._invert(best_trade, curr_ao, curr_bo)
 
         return None
 

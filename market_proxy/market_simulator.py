@@ -15,7 +15,7 @@ from utils.technical_indicators import TechnicalIndicators
 class MarketSimulator(object):
     @staticmethod
     def run_simulation(strategy: Strategy, market_data_raw: DataFrame, strategy_data_raw: DataFrame, currency_pair: str,
-                       time_frame: str, starting_balance: float = 10000.0,
+                       time_frame: str, year: int, starting_balance: float = 10000.0,
                        train_aat: bool = False,
                        metrics_tracker: Optional[MetricsTracker] = None) -> MarketSimulationResults:
         # Numerical results we keep track of
@@ -57,8 +57,8 @@ class MarketSimulator(object):
 
                     # Update the metrics tracker, if required
                     if metrics_tracker is not None:
-                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
-                                                             simulation_results.account_balance)
+                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
+                                                             trade_amount, simulation_results.account_balance)
 
                         if strategy.name == 'AlegAATr':
                             metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
@@ -78,8 +78,8 @@ class MarketSimulator(object):
 
                     # Update the metrics tracker, if required
                     if metrics_tracker is not None:
-                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
-                                                             simulation_results.account_balance)
+                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
+                                                             trade_amount, simulation_results.account_balance)
 
                         if strategy.name == 'AlegAATr':
                             metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
@@ -98,8 +98,8 @@ class MarketSimulator(object):
 
                     # Update the metrics tracker, if required
                     if metrics_tracker is not None:
-                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
-                                                             simulation_results.account_balance)
+                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
+                                                             trade_amount, simulation_results.account_balance)
 
                         if strategy.name == 'AlegAATr':
                             metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
@@ -119,8 +119,8 @@ class MarketSimulator(object):
 
                     # Update the metrics tracker, if required
                     if metrics_tracker is not None:
-                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, trade_amount,
-                                                             simulation_results.account_balance)
+                        metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
+                                                             trade_amount, simulation_results.account_balance)
 
                         if strategy.name == 'AlegAATr':
                             metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
@@ -141,13 +141,13 @@ class MarketSimulator(object):
             return None
 
         # Create an AAT trainer (will only be used if we're running this simulation to train AAT)
-        aat_trainer = AATTrainer(currency_pair, strategy.name, time_frame)
+        aat_trainer = AATTrainer(currency_pair, strategy.name, time_frame, year)
 
         # Keep track of whether the strategy is profitable in training, if required
         if metrics_tracker is not None:
-            features_file_name = f'{strategy.name}_{currency_pair}_{time_frame}_features.pickle'
+            features_file_name = f'{strategy.name}_{currency_pair}_{time_frame}_{year}_features.pickle'
             profitable = os.path.exists(f'../genetics/best_genome_features/{features_file_name}')
-            metrics_tracker.increment_profitable_training(strategy.name, currency_pair, time_frame, profitable)
+            metrics_tracker.increment_profitable_training(strategy.name, currency_pair, time_frame, year, profitable)
 
         # Iterate through the strategies data (either on the H4, H1, or M30 time frames)
         while i < len(strategy_data):
@@ -199,12 +199,12 @@ class MarketSimulator(object):
         # Keep track of whether the strategy is profitable in testing and the final balance, if required
         if metrics_tracker is not None:
             profitable = simulation_results.net_reward >= 0
-            metrics_tracker.increment_profitable_testing(strategy.name, currency_pair, time_frame, profitable)
-            metrics_tracker.update_final_balance(strategy.name, currency_pair, time_frame,
+            metrics_tracker.increment_profitable_testing(strategy.name, currency_pair, time_frame, year, profitable)
+            metrics_tracker.update_final_balance(strategy.name, currency_pair, time_frame, year,
                                                  simulation_results.account_balance)
 
             if strategy.name == 'AlegAATr':
-                metrics_tracker.save_alegaatr_data(strategy, currency_pair, time_frame)
+                metrics_tracker.save_alegaatr_data(strategy, currency_pair, time_frame, year)
 
         # Return the simulation results once we've iterated through all the data
         simulation_results.avg_pips_risked = np.array(pips_risked).mean() if len(pips_risked) > 0 else 0

@@ -17,17 +17,17 @@ class MetricsTracker:
     def update_alegaatr_metric_tracking_vars(self, alegaatr: Strategy, trade_value: float) -> None:
         alegaatr.update_metric_tracking_vars(trade_value)
 
-    def increment_profitable_training(self, strategy_name: str, currency_pair: str, time_frame: str,
+    def increment_profitable_training(self, strategy_name: str, currency_pair: str, time_frame: str, year: int,
                                       profitable: bool) -> None:
-        strategy_pair_time_str = f'{strategy_name}_{currency_pair}_{time_frame}'
+        strategy_pair_time_year_str = f'{strategy_name}_{currency_pair}_{time_frame}_{year}'
         amount = 1 if profitable else 0
-        self.profitable_training[strategy_pair_time_str] = amount
+        self.profitable_training[strategy_pair_time_year_str] = amount
 
-    def increment_profitable_testing(self, strategy_name: str, currency_pair: str, time_frame: str,
+    def increment_profitable_testing(self, strategy_name: str, currency_pair: str, time_frame: str, year: int,
                                      profitable: bool) -> None:
-        strategy_pair_time_str = f'{strategy_name}_{currency_pair}_{time_frame}'
+        strategy_pair_time_year_str = f'{strategy_name}_{currency_pair}_{time_frame}_{year}'
         amount = 1 if profitable else 0
-        self.profitable_testing[strategy_pair_time_str] = amount
+        self.profitable_testing[strategy_pair_time_year_str] = amount
 
     def calculate_profitable_ratios(self, strategy_names: List[str]) -> None:
         for strategy_name in strategy_names:
@@ -40,22 +40,22 @@ class MetricsTracker:
 
             self.profitable_ratios[strategy_name] = (numerator / denominator) if denominator > 0 else None
 
-    def update_trade_amounts(self, strategy_name: str, currency_pair: str, time_frame: str, trade_amount: float,
-                             account_balance: float) -> None:
-        strategy_pair_time_str = f'{strategy_name}_{currency_pair}_{time_frame}'
+    def update_trade_amounts(self, strategy_name: str, currency_pair: str, time_frame: str, year: int,
+                             trade_amount: float, account_balance: float) -> None:
+        strategy_pair_time_year_str = f'{strategy_name}_{currency_pair}_{time_frame}_{year}'
 
-        self.trade_amounts[strategy_pair_time_str] = self.trade_amounts.get(strategy_pair_time_str, []) + [
+        self.trade_amounts[strategy_pair_time_year_str] = self.trade_amounts.get(strategy_pair_time_year_str, []) + [
             trade_amount]
 
         # We can also update the account values here because account value changes with each trade
-        self.account_values[strategy_pair_time_str] = self.account_values.get(strategy_pair_time_str, []) + [
+        self.account_values[strategy_pair_time_year_str] = self.account_values.get(strategy_pair_time_year_str, []) + [
             account_balance]
 
-    def update_final_balance(self, strategy_name: str, currency_pair: str, time_frame: str,
+    def update_final_balance(self, strategy_name: str, currency_pair: str, time_frame: str, year: int,
                              final_balance: float) -> None:
-        strategy_pair_time_str = f'{strategy_name}_{currency_pair}_{time_frame}'
+        strategy_pair_time_year_str = f'{strategy_name}_{currency_pair}_{time_frame}_{year}'
 
-        self.final_balances[strategy_pair_time_str] = final_balance
+        self.final_balances[strategy_pair_time_year_str] = final_balance
 
     def save_data(self, strategy_names: List[str]) -> None:
         # Save the trade amounts
@@ -88,5 +88,5 @@ class MetricsTracker:
             with open(file_location, 'wb') as f:
                 pickle.dump(val, f)
 
-    def save_alegaatr_data(self, alegaatr: Strategy, currency_pair: str, time_frame: str) -> None:
-        alegaatr.save_metric_tracking_vars(currency_pair, time_frame)
+    def save_alegaatr_data(self, alegaatr: Strategy, currency_pair: str, time_frame: str, year: int) -> None:
+        alegaatr.save_metric_tracking_vars(currency_pair, time_frame, year)

@@ -138,3 +138,6 @@ dmypy.json
 
 # Model files
 models/model_files/
+
+# Data files
+data/files/

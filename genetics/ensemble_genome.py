@@ -4,18 +4,13 @@ from strategies.bar_movement import BarMovement
 from strategies.beep_boop import BeepBoop
 from strategies.bollinger_bands import BollingerBands
 from strategies.choc import Choc
-from strategies.cnn import CNNStrategy
 from strategies.ensemble import Ensemble
 from strategies.keltner_channels import KeltnerChannels
-from strategies.knn import KNNStrategy
-from strategies.lstm import LstmStrategy
 from strategies.ma_crossover import MACrossover
 from strategies.macd import MACD
 from strategies.macd_key_level import MACDKeyLevel
 from strategies.macd_stochastic import MACDStochastic
-from strategies.mlp import MLPStrategy
 from strategies.psar import PSAR
-from strategies.random_forest import RandomForestStrategy
 from strategies.rsi import RSI
 from strategies.squeeze_pro import SqueezePro
 from strategies.stochastic import Stochastic
@@ -43,21 +38,12 @@ class EnsembleGeneticFeature(GeneticFeature):
 
 
 class EnsembleGenome(Genome):
-    def __init__(self, currency_pair: str, time_frame: str) -> None:
-        super().__init__(currency_pair, time_frame, Ensemble())
+    def __init__(self, currency_pair: str, time_frame: str, year: int) -> None:
+        super().__init__(currency_pair, time_frame, year, Ensemble())
 
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
-        pair_time_frame_str = f'{self.currency_pair}_{self.time_frame}'
-        cnn_model_name = f'CNN_{pair_time_frame_str}'
-        knn_model_name = f'KNN_{pair_time_frame_str}'
-        lstm_model_name = f'LSTM_{pair_time_frame_str}'
-        mlp_model_name = f'MLP_{pair_time_frame_str}'
-        rf_model_name = f'RandomForest_{pair_time_frame_str}'
-
         all_strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
-                          MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(),
-                          CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
-                          MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
+                          MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend()]
 
         strategies = []
 

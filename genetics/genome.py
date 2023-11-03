@@ -20,8 +20,8 @@ class GeneticFeature:
 # Genome class.  Each genome contains a strategy and a list of genetic features (class is above) that corresponds to
 # the strategy's features
 class Genome:
-    def __init__(self, currency_pair: str, time_frame: str, strategy: Strategy) -> None:
-        self.currency_pair, self.time_frame, self.strategy = currency_pair, time_frame, strategy
+    def __init__(self, currency_pair: str, time_frame: str, year: int, strategy: Strategy) -> None:
+        self.currency_pair, self.time_frame, self.year, self.strategy = currency_pair, time_frame, year, strategy
         self.features = self._initialize_features()
         self.set_strategy_attributes()
 
@@ -33,7 +33,7 @@ class Genome:
     # using the genome's strategy and feature values to run a market simulation)
     def performance(self) -> float:
         simulation_results = SimulationRunner.run_simulation(self.strategy, self.currency_pair, self.time_frame,
-                                                             optimize=True)
+                                                             self.year, optimize=True)
 
         return simulation_results.net_reward
 
@@ -66,11 +66,12 @@ class Genome:
 
     # Saves the genome's features (useful for saving the features of the best genome as the genetic algorithm is run)
     def save_features(self) -> None:
-        pair_time_frame_str = f'{self.currency_pair}_{self.time_frame}'
+        pair_time_frame_year_str = f'{self.currency_pair}_{self.time_frame}_{self.year}'
         strategy_name = self.strategy.name
         concrete_features_dict = {key: self.features[key].concrete_value for key in self.features.keys()}
 
-        with open(f'../genetics/best_genome_features/{strategy_name}_{pair_time_frame_str}_features.pickle', 'wb') as f:
+        with open(f'../genetics/best_genome_features/{strategy_name}_{pair_time_frame_year_str}_features.pickle',
+                  'wb') as f:
             pickle.dump(concrete_features_dict, f)
 
 

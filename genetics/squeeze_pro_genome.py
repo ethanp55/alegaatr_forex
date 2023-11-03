@@ -4,8 +4,8 @@ from typing import Dict
 
 
 class SqueezeProGenome(Genome):
-    def __init__(self, currency_pair: str, time_frame: str) -> None:
-        super().__init__(currency_pair, time_frame, SqueezePro())
+    def __init__(self, currency_pair: str, time_frame: str, year: int) -> None:
+        super().__init__(currency_pair, time_frame, year, SqueezePro())
 
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
         n_reds_feature = GeneticFeature([2, 3, 4, 5, 7, 9])
