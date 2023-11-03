@@ -50,6 +50,7 @@ class MarketSimulator(object):
                     trade_amount = (trade.stop_loss - trade.open_price) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
+                    strategy.trade_finished(trade_amount + day_fees)
 
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:
@@ -71,6 +72,7 @@ class MarketSimulator(object):
                     trade_amount = (trade.stop_gain - trade.open_price) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
+                    strategy.trade_finished(trade_amount + day_fees)
 
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:
@@ -91,6 +93,7 @@ class MarketSimulator(object):
                     trade_amount = (trade.open_price - trade.stop_loss) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
+                    strategy.trade_finished(trade_amount + day_fees)
 
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:
@@ -112,6 +115,7 @@ class MarketSimulator(object):
                     trade_amount = (trade.open_price - trade.stop_gain) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
+                    strategy.trade_finished(trade_amount + day_fees)
 
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:

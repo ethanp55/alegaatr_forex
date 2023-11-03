@@ -19,6 +19,9 @@ class Strategy:
         for name, val in self.__dict__.items():
             print(f'{name}: {val}')
 
+    def trade_finished(self, net_profit: float) -> None:
+        pass
+
     # Loads in the best parameter values that were estimated by the genetic algorithm
     def load_best_parameters(self, currency_pair: str, time_frame: str, year: int) -> None:
         pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
