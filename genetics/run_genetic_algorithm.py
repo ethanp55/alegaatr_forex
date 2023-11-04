@@ -30,8 +30,8 @@ def optimize_genomes() -> None:
     #                 KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
     #                 RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
     #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome]
-    genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
-                    KeltnerChannelsGenome, MACrossoverGenome]
+    genome_types = [MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome, RSIGenome, StochasticGenome, SupertrendGenome,
+                    BeepBoopGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
