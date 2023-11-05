@@ -41,12 +41,13 @@ class AATTrainer:
 
         x = np.array(self.training_data, dtype=float)[:, 0:-2]  # Assumptions - convert any booleans to floats
         y = np.array(self.training_data)[:, -1]  # Correction terms
+        n_neighbors = min(len(x), 15)
 
         print(f'X and Y data for {name_pair_time_year_str}')
         print('X train shape: ' + str(x.shape))
         print('Y train shape: ' + str(y.shape))
 
-        knn = NearestNeighbors(n_neighbors=15)
+        knn = NearestNeighbors(n_neighbors=n_neighbors)
         knn.fit(x)
 
         correction_terms_file_name = f'../aat/training_data/{name_pair_time_year_str}_aat_correction_terms.pickle'

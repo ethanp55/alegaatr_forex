@@ -165,7 +165,7 @@ class AlegAATr(Strategy):
                 n_neighbors = len(training_data)
 
                 if self.min_neighbors <= n_neighbors <= self.max_neighbors:
-                    neighbor_distances, neighbor_indices = knn_model.kneighbors(x, n_neighbors)
+                    neighbor_distances, neighbor_indices = knn_model.kneighbors(x)
                     corrections, distances = [], []
                     baseline = abs(trade.open_price - trade.stop_loss) * trade.n_units
 
@@ -303,7 +303,7 @@ class AlegAATr(Strategy):
                 n_neighbors = len(training_data)
 
                 if self.min_neighbors <= n_neighbors <= self.max_neighbors:
-                    neighbor_distances, neighbor_indices = knn_model.kneighbors(x, n_neighbors)
+                    neighbor_distances, neighbor_indices = knn_model.kneighbors(x)
                     corrections, distances = [], []
                     baseline = abs(trade.open_price - trade.stop_loss) * trade.n_units
 

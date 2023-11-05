@@ -21,8 +21,7 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 def train_aat() -> None:
     # The "regular" strategies (just use a set of predetermined rules)
     strategy_types = [BarMovement, BeepBoop, BollingerBands, Choc, KeltnerChannels, MACrossover, MACD, MACDKeyLevel,
-                      MACDStochastic, PSAR, RSI, SqueezePro, Stochastic, Supertrend, PSAR, RSI, Stochastic, Supertrend,
-                      BeepBoop]
+                      MACDStochastic, PSAR, RSI, SqueezePro, Stochastic, Supertrend]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
