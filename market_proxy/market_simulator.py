@@ -147,12 +147,6 @@ class MarketSimulator(object):
         # Create an AAT trainer (will only be used if we're running this simulation to train AAT)
         aat_trainer = AATTrainer(currency_pair, strategy.name, time_frame, year)
 
-        # Keep track of whether the strategy is profitable in training, if required
-        if metrics_tracker is not None:
-            features_file_name = f'{strategy.name}_{currency_pair}_{time_frame}_{year}_features.pickle'
-            profitable = os.path.exists(f'../genetics/best_genome_features/{features_file_name}')
-            metrics_tracker.increment_profitable_training(strategy.name, currency_pair, time_frame, year, profitable)
-
         # Iterate through the strategies data (either on the H4, H1, or M30 time frames)
         while i < len(strategy_data):
             # If there is no open trade, check to see if we should place one

@@ -32,7 +32,6 @@ class DataLoader(object):
             # We want to stop training after 2022
             assert year < YEARS[-1]
 
-        # '2019-08-31 00:00:00'
         next_year_date = f'{year + 1}-11-01 00:00:00'
         curr_year_date = f'{year}-11-01 00:00:00'
 

@@ -106,8 +106,6 @@ class AlegAATr(Strategy):
             except:
                 continue
 
-        print(self.use_single_selection, self.min_num_predictions)
-
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
         for generator in self.generators:
@@ -160,7 +158,7 @@ class AlegAATr(Strategy):
         for generator in self.generators:
             trade = generator.place_trade(curr_idx, strategy_data, currency_pair, account_balance)
 
-            if trade is not None:
+            if trade is not None and generator.name in self.models:
                 knn_model, training_data = self.models[generator.name], self.correction_terms[generator.name]
                 n_neighbors = len(training_data)
 
@@ -298,7 +296,7 @@ class AlegAATr(Strategy):
         for generator in self.generators:
             trade = generator.place_trade(curr_idx, strategy_data, currency_pair, account_balance)
 
-            if trade is not None:
+            if trade is not None and generator.name in self.models:
                 knn_model, training_data = self.models[generator.name], self.correction_terms[generator.name]
                 n_neighbors = len(training_data)
 

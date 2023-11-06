@@ -34,11 +34,12 @@ def optimize_genomes() -> None:
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
-            for year in YEARS[:-1]:
+            for year in YEARS[1:-1]:
                 # Creates a new process for each genome type
                 pool = Pool(processes=len(genome_types))
                 pool.map(
-                    partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, year=year),
+                    partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, year=year,
+                            population_size=6),
                     genome_types)
 
 

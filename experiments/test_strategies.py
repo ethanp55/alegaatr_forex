@@ -25,12 +25,6 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 
 
 def test_strategies() -> None:
-    # List of all of the regular strategies
-    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
-    #               MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
-    #               RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble(), AlegAATr()]
-    strategies = [AlegAATr()]
-
     # List of the final results to output
     test_results = []
 
@@ -40,6 +34,13 @@ def test_strategies() -> None:
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
             for year in YEARS[1:]:
+                # List of all of the regular strategies
+                # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
+                #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
+                #               Supertrend(), PSAR(), RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble(),
+                #               AlegAATr()]
+                strategies = [AlegAATr()]
+
                 pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                 pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
 

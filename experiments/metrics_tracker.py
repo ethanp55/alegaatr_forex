@@ -9,19 +9,13 @@ class MetricsTracker:
     #       - With these, can calculate win rate and average trade amount
     #   - Account value over time (array of account values)
     #   - Final balance
-    #   - Number of scenarios where profitable in testing / number of scenarios where profitable in training
+    #   - Number of scenarios where profitable in testing / number of total testing scenarios
     def __init__(self) -> None:
         self.trade_amounts, self.account_values, self.final_balances = {}, {}, {}
-        self.profitable_training, self.profitable_testing, self.profitable_ratios = {}, {}, {}
+        self.profitable_testing, self.profitable_ratios = {}, {}
 
     def update_alegaatr_metric_tracking_vars(self, alegaatr: Strategy, trade_value: float) -> None:
         alegaatr.update_metric_tracking_vars(trade_value)
-
-    def increment_profitable_training(self, strategy_name: str, currency_pair: str, time_frame: str, year: int,
-                                      profitable: bool) -> None:
-        strategy_pair_time_year_str = f'{strategy_name}_{currency_pair}_{time_frame}_{year}'
-        amount = 1 if profitable else 0
-        self.profitable_training[strategy_pair_time_year_str] = amount
 
     def increment_profitable_testing(self, strategy_name: str, currency_pair: str, time_frame: str, year: int,
                                      profitable: bool) -> None:
@@ -33,10 +27,10 @@ class MetricsTracker:
         for strategy_name in strategy_names:
             numerator, denominator = 0, 0
 
-            for key in self.profitable_training:
+            for key, amount in self.profitable_testing.items():
                 if strategy_name in key:
-                    numerator += self.profitable_testing[key]
-                    denominator += self.profitable_training[key]
+                    numerator += amount
+                    denominator += 1
 
             self.profitable_ratios[strategy_name] = (numerator / denominator) if denominator > 0 else None
 
