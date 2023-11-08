@@ -2,7 +2,6 @@ from data.data_loader import DataLoader
 from experiments.metrics_tracker import MetricsTracker
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.market_simulator import MarketSimulator
-import numpy as np
 from strategies.strategy import Strategy
 from typing import Optional
 
@@ -22,8 +21,7 @@ class SimulationRunner(object):
 
         except:
             # Case where there are no "best" parameters because they did not yield a positive net reward
-            return MarketSimulationResults(-np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf,
-                                           -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf)
+            return MarketSimulationResults(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
         return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair, time_frame,
                                               year, train_aat=train_aat, metrics_tracker=metrics_tracker)

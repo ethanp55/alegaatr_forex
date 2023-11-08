@@ -27,7 +27,7 @@ from typing import Optional
 class AlegAATr(Strategy):
     def __init__(self, starting_idx: int = 2, percent_to_risk: float = 0.02, min_num_predictions: int = 3,
                  use_single_selection: bool = True, invert: bool = False, min_neighbors: int = 15,
-                 max_neighbors: int = 100000) -> None:
+                 max_neighbors: int = 100000, genetic: bool = False) -> None:
         super().__init__(starting_idx, percent_to_risk, 'AlegAATr')
         self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                            MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
@@ -40,6 +40,7 @@ class AlegAATr(Strategy):
         self.prev_prediction = None
         self.predictions_when_wrong, self.trade_values_when_wrong = [], []
         self.predictions_when_correct, self.trade_values_when_correct = [], []
+        self.genetic = genetic
 
     def print_parameters(self) -> None:
         print(f'min_num_predictions: {self.min_num_predictions}')
@@ -83,11 +84,8 @@ class AlegAATr(Strategy):
         self._clear_metric_tracking_vars()
 
     def load_best_parameters(self, currency_pair: str, time_frame: str, year: int) -> None:
-        try:
+        if not self.genetic:
             super().load_best_parameters(currency_pair, time_frame, year)
-
-        except:
-            pass
 
         for generator in self.generators:
             try:
