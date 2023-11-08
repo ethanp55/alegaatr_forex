@@ -13,10 +13,12 @@ class AlegAATrGenome(Genome):
         use_single_selection_feature = GeneticFeature([True, False])
         invert_feature = GeneticFeature([True, False])
         min_neighbors_feature = GeneticFeature([5, 10, 15, 30, 45, 60])
+        lmbda_feature = GeneticFeature([0.95, 0.99, 0.999])
 
         feature_dictionary = {'min_num_predictions': min_num_predictions_feature,
-                              'use_single_selection': use_single_selection_feature,
+                              # 'use_single_selection': use_single_selection_feature,
                               'invert': invert_feature,
-                              'min_neighbors': min_neighbors_feature}
+                              'min_neighbors': min_neighbors_feature,
+                              'lmbda': lmbda_feature}
 
         return feature_dictionary

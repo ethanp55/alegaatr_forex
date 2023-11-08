@@ -41,11 +41,12 @@ class AATTrainer:
 
         x = np.array(self.training_data, dtype=float)[:, 0:-2]  # Assumptions - convert any booleans to floats
         y = np.array(self.training_data)[:, -1]  # Correction terms
-        n_neighbors = min(len(x), 15)
+        n_neighbors = int(len(x) ** 0.5)
 
         print(f'X and Y data for {name_pair_time_year_str}')
         print('X train shape: ' + str(x.shape))
         print('Y train shape: ' + str(y.shape))
+        print(f'N neighbors: {n_neighbors}')
 
         knn = NearestNeighbors(n_neighbors=n_neighbors)
         knn.fit(x)

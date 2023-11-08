@@ -51,18 +51,19 @@ class MarketSimulator(object):
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
                     strategy.trade_finished(trade_amount + day_fees)
+                    profit = trade_amount + day_fees
 
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:
-                        aat_trainer.add_correction_term(trade_amount)
+                        aat_trainer.add_correction_term(profit)
 
                     # Update the metrics tracker, if required
                     if metrics_tracker is not None:
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
-                                                             trade_amount, simulation_results.account_balance)
+                                                             profit, simulation_results.account_balance)
 
                         if strategy.name == 'AlegAATr':
-                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
+                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, profit)
 
                     return curr_date
 
@@ -73,18 +74,19 @@ class MarketSimulator(object):
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
                     strategy.trade_finished(trade_amount + day_fees)
+                    profit = trade_amount + day_fees
 
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:
-                        aat_trainer.add_correction_term(trade_amount)
+                        aat_trainer.add_correction_term(profit)
 
                     # Update the metrics tracker, if required
                     if metrics_tracker is not None:
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
-                                                             trade_amount, simulation_results.account_balance)
+                                                             profit, simulation_results.account_balance)
 
                         if strategy.name == 'AlegAATr':
-                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
+                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, profit)
 
                     return curr_date
 
@@ -94,18 +96,19 @@ class MarketSimulator(object):
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
                     strategy.trade_finished(trade_amount + day_fees)
+                    profit = trade_amount + day_fees
 
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:
-                        aat_trainer.add_correction_term(trade_amount)
+                        aat_trainer.add_correction_term(profit)
 
                     # Update the metrics tracker, if required
                     if metrics_tracker is not None:
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
-                                                             trade_amount, simulation_results.account_balance)
+                                                             profit, simulation_results.account_balance)
 
                         if strategy.name == 'AlegAATr':
-                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
+                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, profit)
 
                     return curr_date
 
@@ -116,18 +119,19 @@ class MarketSimulator(object):
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
                     simulation_results.update_results(trade_amount, day_fees)
                     strategy.trade_finished(trade_amount + day_fees)
+                    profit = trade_amount + day_fees
 
                     # Create the AAT correction term, if we're training AAT
                     if train_aat:
-                        aat_trainer.add_correction_term(trade_amount)
+                        aat_trainer.add_correction_term(profit)
 
                     # Update the metrics tracker, if required
                     if metrics_tracker is not None:
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
-                                                             trade_amount, simulation_results.account_balance)
+                                                             profit, simulation_results.account_balance)
 
                         if strategy.name == 'AlegAATr':
-                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, trade_amount)
+                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, profit)
 
                     return curr_date
 
