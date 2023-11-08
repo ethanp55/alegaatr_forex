@@ -29,7 +29,6 @@ def test_strategies() -> None:
     # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(), MACD(),
     #               MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(), Supertrend(), PSAR(),
     #               RSI(), Stochastic(), Supertrend(), BeepBoop(), Ensemble(), AlegAATr()]
-    strategies = [AlegAATr()]
 
     # List of the final results to output
     test_results = []
@@ -39,6 +38,8 @@ def test_strategies() -> None:
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
+            strategies = [AlegAATr()]
+
             pair_time_frame_str = f'{currency_pair}_{time_frame}'
 
             print(pair_time_frame_str)
@@ -60,12 +61,17 @@ def test_strategies() -> None:
 
             for strategy in all_strategies:
                 print(strategy.name)
+                rewards = []
 
-                result = SimulationRunner.run_simulation(strategy, currency_pair, time_frame, False, False,
-                                                         metrics_tracker)
+                for _ in range(10):
+                    result = SimulationRunner.run_simulation(strategy, currency_pair, time_frame, False, False,
+                                                             metrics_tracker)
+
+                    rewards.append(result.net_reward)
 
                 # Update the final results
                 test_results.append((f'{strategy.name}_{pair_time_frame_str}', result))
+                print(max(rewards), min(rewards), sum(rewards) / len(rewards))
 
             print()
 

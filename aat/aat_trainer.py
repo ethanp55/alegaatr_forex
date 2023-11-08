@@ -51,7 +51,7 @@ class AATTrainer:
         print('X train shape: ' + str(x.shape))
         print('Y train shape: ' + str(y.shape))
 
-        knn = NearestNeighbors(n_neighbors=15)
+        knn = NearestNeighbors(n_neighbors=5)
         knn.fit(x)
 
         correction_terms_file_name = f'../aat/training_data/{name_pair_time_str}_aat_correction_terms.pickle'

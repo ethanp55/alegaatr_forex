@@ -1,4 +1,5 @@
 from aat.assumptions import Assumptions
+from collections import deque
 from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade, TradeType
@@ -25,19 +26,28 @@ from typing import Optional
 
 class AlegAATr(Strategy):
     def __init__(self, starting_idx: int = 2, percent_to_risk: float = 0.02, min_num_predictions: int = 3,
-                 use_single_selection: bool = True, min_n_neighbors: int = 15) -> None:
+                 use_single_selection: bool = True, min_n_neighbors: int = 5, lmbda: float = 0.95) -> None:
         super().__init__(starting_idx, percent_to_risk, 'AlegAATr')
         self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                            MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
                            Supertrend(), PSAR(), RSI(), Stochastic(), Supertrend(), BeepBoop()]
         self.models, self.correction_terms = {}, {}
-        self.min_num_predictions, self.use_single_selection, self.min_n_neighbors = \
-            min_num_predictions, use_single_selection, min_n_neighbors
+        self.min_num_predictions, self.use_single_selection, self.min_n_neighbors, self.lmbda = \
+            min_num_predictions, use_single_selection, min_n_neighbors, lmbda
         self.use_tsl, self.close_trade_incrementally = False, False
         self.min_idx = 0
         self.prev_prediction = None
         self.predictions_when_wrong, self.trade_values_when_wrong = [], []
         self.predictions_when_correct, self.trade_values_when_correct = [], []
+        self.empirical_rewards, self.time_steps_since_used = {}, {}
+        self.generator_name = None
+
+        for generator in self.generators:
+            self.empirical_rewards[generator.name] = deque(maxlen=5)
+            self.time_steps_since_used[generator.name] = 0
+
+    def trade_finished(self, amount: float) -> None:
+        self.empirical_rewards[self.generator_name].append(amount)
 
     def print_parameters(self) -> None:
         print(f'min_num_predictions: {self.min_num_predictions}')
@@ -105,6 +115,8 @@ class AlegAATr(Strategy):
             except:
                 continue
 
+        self.use_single_selection = True
+
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
         for generator in self.generators:
@@ -135,7 +147,7 @@ class AlegAATr(Strategy):
                 n_neighbors = len(training_data)
 
                 if n_neighbors >= self.min_n_neighbors:
-                    neighbor_distances, neighbor_indices = knn_model.kneighbors(x, n_neighbors)
+                    neighbor_distances, neighbor_indices = knn_model.kneighbors(x)
                     corrections, distances = [], []
                     baseline = abs(trade.open_price - trade.stop_loss) * trade.n_units
 
@@ -259,47 +271,63 @@ class AlegAATr(Strategy):
 
     def _single_selection(self, x: np.array, curr_idx: int, strategy_data: DataFrame, currency_pair: str,
                           account_balance: float) -> Optional[Trade]:
-        best_trade, best_trade_amount, n_profitable_predictions = None, -np.inf, 0
+        best_trade, best_trade_amount, n_profitable_predictions, generator_name = None, -np.inf, 0, None
 
         for generator in self.generators:
             trade = generator.place_trade(curr_idx, strategy_data, currency_pair, account_balance)
 
             if trade is not None and generator.name in self.models:
-                knn_model, training_data = self.models[generator.name], self.correction_terms[generator.name]
-                n_neighbors = len(training_data)
+                prob = self.lmbda ** self.time_steps_since_used[generator.name]
+                use_empricial_avg = np.random.choice([1, 0], p=[prob, 1 - prob])
+                trade_amount_pred = None
 
-                if n_neighbors >= self.min_n_neighbors:
-                    neighbor_distances, neighbor_indices = knn_model.kneighbors(x, n_neighbors)
-                    corrections, distances = [], []
-                    baseline = abs(trade.open_price - trade.stop_loss) * trade.n_units
+                if use_empricial_avg and len(self.empirical_rewards[generator.name]) > 0:
+                    trade_amount_pred = np.array(self.empirical_rewards[generator.name]).mean()
 
-                    for i in range(len(neighbor_indices[0])):
-                        neighbor_idx = neighbor_indices[0][i]
-                        neighbor_dist = neighbor_distances[0][i]
-                        corrections.append(training_data[neighbor_idx,])
-                        distances.append(neighbor_dist)
+                else:
+                    knn_model, training_data = self.models[generator.name], self.correction_terms[generator.name]
+                    n_neighbors = len(training_data)
 
-                    trade_amount_pred, inverse_distance_sum = 0, 0
+                    if n_neighbors >= self.min_n_neighbors:
+                        neighbor_distances, neighbor_indices = knn_model.kneighbors(x)
+                        corrections, distances = [], []
+                        baseline = abs(trade.open_price - trade.stop_loss) * trade.n_units
 
-                    for dist in distances:
-                        inverse_distance_sum += (1 / dist) if dist != 0 else (1 / 0.000001)
+                        for i in range(len(neighbor_indices[0])):
+                            neighbor_idx = neighbor_indices[0][i]
+                            neighbor_dist = neighbor_distances[0][i]
+                            corrections.append(training_data[neighbor_idx,])
+                            distances.append(neighbor_dist)
 
-                    for i in range(len(corrections)):
-                        distance_i, cor = distances[i], corrections[i]
-                        inverse_distance_i = (1 / distance_i) if distance_i != 0 else (1 / 0.000001)
-                        distance_weight = inverse_distance_i / inverse_distance_sum
+                        trade_amount_pred, inverse_distance_sum = 0, 0
 
-                        trade_amount_pred += (baseline * cor * distance_weight)
+                        for dist in distances:
+                            inverse_distance_sum += (1 / dist) if dist != 0 else (1 / 0.000001)
 
+                        for i in range(len(corrections)):
+                            distance_i, cor = distances[i], corrections[i]
+                            inverse_distance_i = (1 / distance_i) if distance_i != 0 else (1 / 0.000001)
+                            distance_weight = inverse_distance_i / inverse_distance_sum
+
+                            trade_amount_pred += (baseline * cor * distance_weight)
+
+                if trade_amount_pred is not None:
                     n_profitable_predictions += 1 if trade_amount_pred > 0 else 0
 
                     if trade_amount_pred > max(0, best_trade_amount):
-                        best_trade, best_trade_amount = trade, trade_amount_pred
+                        best_trade, best_trade_amount, generator_name = trade, trade_amount_pred, generator.name
                         self.use_tsl, self.close_trade_incrementally = \
                             generator.use_tsl, generator.close_trade_incrementally
 
         if n_profitable_predictions >= self.min_num_predictions:
             self.prev_prediction = best_trade_amount
+            self.generator_name = generator_name
+            self.time_steps_since_used[self.generator_name] = 0
+
+            for generator in self.generators:
+                if generator.name != self.generator_name:
+                    self.time_steps_since_used[generator.name] += 1
+
             return best_trade
 
         return None

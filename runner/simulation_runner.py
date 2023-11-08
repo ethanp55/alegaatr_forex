@@ -29,6 +29,10 @@ class SimulationRunner(object):
             strategy_data_raw = strategy_data_raw.loc[strategy_data_raw['Date'] < VALIDATION_START_DATE]
             strategy_data_raw.reset_index(drop=True, inplace=True)
 
+            return MarketSimulator.run_simulation(strategy, validation_market_data_raw,
+                                                  validation_strategy_data_raw,
+                                                  currency_pair, time_frame)
+
         # If we're running on test data (i.e. we're not optimizing anything), load in the strategy's "best" parameters
         try:
             if not optimize:

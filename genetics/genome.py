@@ -34,10 +34,13 @@ class Genome:
     def performance(self, net_reward_weight: float = 0.5) -> float:
         simulation_results = SimulationRunner.run_simulation(self.strategy, self.currency_pair, self.time_frame,
                                                              optimize=True)
-        net_reward, validation_net_reward = simulation_results.net_reward, simulation_results.validation_net_reward
-        validation_net_reward_weight = 1 - net_reward_weight
-
-        return (net_reward_weight * net_reward) + (validation_net_reward_weight * validation_net_reward)
+        # net_reward, validation_net_reward = simulation_results.net_reward, simulation_results.validation_net_reward
+        # validation_net_reward_weight = 1 - net_reward_weight
+        #
+        # print(net_reward, validation_net_reward)
+        #
+        # return (net_reward_weight * net_reward) + (validation_net_reward_weight * validation_net_reward)
+        return simulation_results.net_reward
 
     # Randomly changes some of the genome's feature values.  Once the feature values are mutated, the corresponding
     # strategy values need to be updated as well

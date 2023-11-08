@@ -11,10 +11,13 @@ class AlegAATrGenome(Genome):
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
         min_num_predictions_feature = GeneticFeature([1, 2, 3, 5, 7, 9])
         use_single_selection_feature = GeneticFeature([True, False])
-        min_n_neighbors_feature = GeneticFeature([15, 30, 60])
+        min_n_neighbors_feature = GeneticFeature([5, 10, 15, 30, 60])
+        lmbda_feature = GeneticFeature([0.95, 0.99, 0.999])
 
         feature_dictionary = {'min_num_predictions': min_num_predictions_feature,
-                              'use_single_selection': use_single_selection_feature,
-                              'min_n_neighbors': min_n_neighbors_feature}
+                              # 'use_single_selection': use_single_selection_feature,
+                              'min_n_neighbors': min_n_neighbors_feature,
+                              'lmbda': lmbda_feature
+                              }
 
         return feature_dictionary

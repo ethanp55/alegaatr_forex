@@ -18,13 +18,16 @@ def process_alegaatr_metrics() -> None:
 
                 n_bins = int(0.25 * len(predictions_when_wrong))
 
+                if n_bins == 0:
+                    continue
+
                 plt.grid()
                 plt.hist(predictions_when_wrong, bins=n_bins, alpha=0.75, label='Predictions', color='red')
-                plt.hist(trade_values_when_wrong, bins=n_bins, alpha=0.5, label='Trade Amounts', color='green')
+                plt.hist(trade_values_when_wrong, bins=n_bins, alpha=0.5, label='Profits', color='green')
                 plt.xlabel('USD Amounts')
                 plt.ylabel('Counts')
                 plt.legend(loc='best')
-                plt.title(f'Distributions of Incorrect Predictions and Trade Amounts on {currency_pair} {time_frame}')
+                plt.title(f'Distributions of Incorrect Predictions and Profits on {currency_pair} {time_frame}')
                 plt.savefig(f'../experiments/plots/alegaatr_metrics/{currency_pair}_{time_frame}_incorrect',
                             bbox_inches='tight')
                 plt.clf()
@@ -33,12 +36,25 @@ def process_alegaatr_metrics() -> None:
 
                 plt.grid()
                 plt.hist(predictions_when_correct, bins=n_bins, alpha=0.75, label='Predictions', color='blue')
-                plt.hist(trade_values_when_correct, bins=n_bins, alpha=0.5, label='Trade Amounts', color='green')
+                plt.hist(trade_values_when_correct, bins=n_bins, alpha=0.5, label='Profits', color='green')
                 plt.xlabel('USD Amounts')
                 plt.ylabel('Counts')
                 plt.legend(loc='best')
-                plt.title(f'Distributions of Correct Predictions and Trade Amounts on {currency_pair} {time_frame}')
+                plt.title(f'Distributions of Correct Predictions and Profits on {currency_pair} {time_frame}')
                 plt.savefig(f'../experiments/plots/alegaatr_metrics/{currency_pair}_{time_frame}_correct',
+                            bbox_inches='tight')
+                plt.clf()
+
+                n_bins = int(0.25 * len(predictions_when_correct))
+
+                plt.grid()
+                plt.hist(predictions_when_correct, bins=n_bins, alpha=0.75, label='Correct', color='green')
+                plt.hist(predictions_when_wrong, bins=n_bins, alpha=0.5, label='Incorrect', color='red')
+                plt.xlabel('USD Amounts')
+                plt.ylabel('Counts')
+                plt.legend(loc='best')
+                plt.title(f'Distributions of Predictions on {currency_pair} {time_frame}')
+                plt.savefig(f'../experiments/plots/alegaatr_metrics/{currency_pair}_{time_frame}_preds',
                             bbox_inches='tight')
                 plt.clf()
 
