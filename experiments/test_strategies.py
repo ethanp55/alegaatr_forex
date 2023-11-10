@@ -38,10 +38,7 @@ def test_strategies() -> None:
                 # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                 #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
                 #               Supertrend(), Ensemble(), AlegAATr()]
-                # strategies = [AlegAATr()]
-                strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
-                              MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                              Supertrend()]
+                strategies = [AlegAATr()]
 
                 pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                 pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
@@ -68,7 +65,7 @@ def test_strategies() -> None:
 
                     result = SimulationRunner.run_simulation(strategy, currency_pair, time_frame, year, False, False,
                                                              metrics_tracker)
-                    # print(result.net_reward)
+                    print(result.net_reward)
 
                     # Update the final results
                     test_results.append((f'{strategy.name}_{pair_time_frame_year_str}', result))

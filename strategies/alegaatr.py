@@ -7,12 +7,19 @@ from market_proxy.trade import Trade, TradeType
 import numpy as np
 from pandas import DataFrame
 import pickle
+from strategies.bar_movement import BarMovement
+from strategies.beep_boop import BeepBoop
+from strategies.bollinger_bands import BollingerBands
 from strategies.choc import Choc
+from strategies.keltner_channels import KeltnerChannels
 from strategies.ma_crossover import MACrossover
 from strategies.macd import MACD
 from strategies.macd_key_level import MACDKeyLevel
 from strategies.macd_stochastic import MACDStochastic
+from strategies.psar import PSAR
 from strategies.rsi import RSI
+from strategies.squeeze_pro import SqueezePro
+from strategies.stochastic import Stochastic
 from strategies.strategy import Strategy
 from strategies.supertrend import Supertrend
 from typing import Optional
@@ -24,7 +31,9 @@ class AlegAATr(Strategy):
                  max_neighbors: int = 100000, genetic: bool = False, lmbda: float = 0.95,
                  optimistic_start: bool = False) -> None:
         super().__init__(starting_idx, percent_to_risk, 'AlegAATr')
-        self.generators = [MACD(), MACDStochastic(), MACDKeyLevel(), MACrossover(), Choc(), Supertrend(), RSI()]
+        self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
+                           MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
+                           Supertrend()]
         self.models, self.correction_terms = {}, {}
         self.min_num_predictions, self.use_single_selection, self.invert, self.min_neighbors, self.max_neighbors = \
             min_num_predictions, use_single_selection, invert, min_neighbors, max_neighbors
@@ -84,7 +93,8 @@ class AlegAATr(Strategy):
         self._clear_metric_tracking_vars()
 
     def trade_finished(self, net_profit: float) -> None:
-        self.empirical_rewards[self.generator_in_use_name].append(net_profit)
+        # self.empirical_rewards[self.generator_in_use_name].append(net_profit)
+        pass
 
     def load_best_parameters(self, currency_pair: str, time_frame: str, year: int) -> None:
         if not self.genetic:
@@ -304,7 +314,8 @@ class AlegAATr(Strategy):
                 empirical_rewards = self.empirical_rewards[generator_name]
                 trade_amount_pred = None
 
-                if use_empricial_avg and (len(empirical_rewards) > 0 or self.optimistic_start):
+                # if use_empricial_avg and (len(empirical_rewards) > 0 or self.optimistic_start):
+                if False:
                     trade_amount_pred = np.array(empirical_rewards).mean() if len(empirical_rewards) > 0 else np.inf
 
                 else:

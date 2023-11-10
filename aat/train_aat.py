@@ -1,19 +1,27 @@
 from multiprocessing import Pool
 from functools import partial
 from runner.simulation_runner import SimulationRunner
+from strategies.bar_movement import BarMovement
+from strategies.beep_boop import BeepBoop
+from strategies.bollinger_bands import BollingerBands
 from strategies.choc import Choc
+from strategies.keltner_channels import KeltnerChannels
 from strategies.ma_crossover import MACrossover
 from strategies.macd import MACD
 from strategies.macd_key_level import MACDKeyLevel
 from strategies.macd_stochastic import MACDStochastic
+from strategies.psar import PSAR
 from strategies.rsi import RSI
+from strategies.squeeze_pro import SqueezePro
+from strategies.stochastic import Stochastic
 from strategies.supertrend import Supertrend
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 
 
 def train_aat() -> None:
     # The "regular" strategies (just use a set of predetermined rules)
-    strategy_types = [MACD, MACDStochastic, MACDKeyLevel, MACrossover, Choc, Supertrend, RSI]
+    strategy_types = [BarMovement, BeepBoop, BollingerBands, Choc, KeltnerChannels, MACrossover, MACD, MACDKeyLevel,
+                      MACDStochastic, PSAR, RSI, SqueezePro, Stochastic, Supertrend]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
