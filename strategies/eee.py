@@ -52,7 +52,7 @@ class EEE(Strategy):
         if not self.genetic:
             super().load_best_parameters(currency_pair, time_frame, year)
 
-        for generator in self.experts:
+        for generator in self.experts.values():
             try:
                 # Make sure the generator is using its "best" parameters for the given currency pair and time frame
                 generator.load_best_parameters(currency_pair, time_frame, year)
@@ -142,7 +142,7 @@ class EEE(Strategy):
         if trade is not None:
             n_predictions = 0
 
-            for expert in self.experts:
+            for expert in self.experts.values():
                 possible_trade = expert.place_trade(curr_idx, strategy_data, currency_pair, account_balance)
                 n_predictions += 1 if possible_trade is not None else 0
 

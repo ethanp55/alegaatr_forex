@@ -21,6 +21,7 @@ from strategies.rsi import RSI
 from strategies.squeeze_pro import SqueezePro
 from strategies.stochastic import Stochastic
 from strategies.supertrend import Supertrend
+from strategies.ucb import UCB
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 
 
@@ -37,8 +38,8 @@ def test_strategies() -> None:
                 # List of all of the regular strategies
                 # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                 #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                #               Supertrend(), Ensemble(), AlegAATr()]
-                strategies = [AlegAATr()]
+                #               Supertrend(), Ensemble(), AlegAATr(), UCB()]
+                strategies = [UCB()]
 
                 pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                 pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'

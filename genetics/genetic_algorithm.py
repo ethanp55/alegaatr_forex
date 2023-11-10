@@ -8,7 +8,7 @@ from typing import List, Tuple
 class GeneticAlgorithm(object):
     # Runs the genetic algorithm
     @staticmethod
-    def run(genome_type: type, currency_pair: str, time_frame: str, year: int, n_iterations: int = 5,
+    def run(genome_type: type, currency_pair: str, time_frame: str, year: int, n_iterations: int = 3,
             population_size: int = 10, possible_n_mutations_ratio: float = 0.25) -> None:
         # Placeholders for the population and list of new genomes (used to updated the population)
         population, new_genomes = None, []

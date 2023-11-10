@@ -21,6 +21,7 @@ from genetics.rsi_genome import RSIGenome
 from genetics.squeeze_pro_genome import SqueezeProGenome
 from genetics.stochastic_genome import StochasticGenome
 from genetics.supertrend_genome import SupertrendGenome
+from genetics.ucb_genome import UCBGenome
 from multiprocessing import Pool
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 
@@ -29,8 +30,8 @@ def optimize_genomes() -> None:
     # genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
     #                 KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
     #                 RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
-    #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome]
-    genome_types = [AlegAATrGenome]
+    #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome, UCBGenome]
+    genome_types = [UCBGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
@@ -39,7 +40,7 @@ def optimize_genomes() -> None:
                 pool = Pool(processes=len(genome_types))
                 pool.map(
                     partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, year=year,
-                            population_size=6),
+                            population_size=4),
                     genome_types)
 
 
