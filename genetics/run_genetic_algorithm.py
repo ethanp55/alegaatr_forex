@@ -6,6 +6,7 @@ from genetics.bollinger_bands_genome import BollingerBandsGenome
 from genetics.choc_genome import ChocGenome
 from genetics.cnn_genome import CNNGenome
 from genetics.ensemble_genome import EnsembleGenome
+from genetics.eee_genome import EEEGenome
 from genetics.exp3_genome import EXP3Genome
 from genetics.genetic_algorithm import GeneticAlgorithm
 from genetics.keltner_channels_genome import KeltnerChannelsGenome
@@ -31,8 +32,9 @@ def optimize_genomes() -> None:
     # genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
     #                 KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
     #                 RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
-    #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome, UCBGenome, EXP3Genome]
-    genome_types = [EXP3Genome]
+    #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome, UCBGenome, EXP3Genome,
+    #                 EEEGenome]
+    genome_types = [EEEGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:

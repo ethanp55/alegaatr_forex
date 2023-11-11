@@ -7,6 +7,7 @@ from strategies.bollinger_bands import BollingerBands
 from strategies.choc import Choc
 from strategies.cnn import CNNStrategy
 from strategies.ensemble import Ensemble
+from strategies.eee import EEE
 from strategies.exp3 import EXP3
 from strategies.keltner_channels import KeltnerChannels
 from strategies.knn import KNNStrategy
@@ -39,8 +40,8 @@ def test_strategies() -> None:
                 # List of all of the regular strategies
                 # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                 #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3()]
-                strategies = [EXP3()]
+                #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
+                strategies = [EEE()]
 
                 pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                 pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
