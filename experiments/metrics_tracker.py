@@ -21,16 +21,17 @@ class MetricsTracker:
                                      profitable: bool) -> None:
         strategy_pair_time_year_str = f'{strategy_name}_{currency_pair}_{time_frame}_{year}'
         amount = 1 if profitable else 0
-        self.profitable_testing[strategy_pair_time_year_str] = amount
+        self.profitable_testing[strategy_pair_time_year_str] = self.profitable_testing.get(strategy_pair_time_year_str,
+                                                                                           []) + [amount]
 
     def calculate_profitable_ratios(self, strategy_names: List[str]) -> None:
         for strategy_name in strategy_names:
             numerator, denominator = 0, 0
 
-            for key, amount in self.profitable_testing.items():
+            for key, amounts in self.profitable_testing.items():
                 if strategy_name in key:
-                    numerator += amount
-                    denominator += 1
+                    numerator += sum(amounts)
+                    denominator += len(amounts)
 
             self.profitable_ratios[strategy_name] = (numerator / denominator) if denominator > 0 else None
 
@@ -49,7 +50,8 @@ class MetricsTracker:
                              final_balance: float) -> None:
         strategy_pair_time_year_str = f'{strategy_name}_{currency_pair}_{time_frame}_{year}'
 
-        self.final_balances[strategy_pair_time_year_str] = final_balance
+        self.final_balances[strategy_pair_time_year_str] = self.final_balances.get(strategy_pair_time_year_str, []) + [
+            final_balance]
 
     def save_data(self, strategy_names: List[str]) -> None:
         # Save the trade amounts
@@ -71,7 +73,7 @@ class MetricsTracker:
             file_location = f'../experiments/results/{key}_final_balances.pickle'
 
             with open(file_location, 'wb') as f:
-                pickle.dump(val, f)
+                pickle.dump(sum(val) / len(val), f)
 
         # Save the profitable testing set ratios
         self.calculate_profitable_ratios(strategy_names)

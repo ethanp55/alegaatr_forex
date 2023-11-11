@@ -34,7 +34,7 @@ def optimize_genomes() -> None:
     #                 RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
     #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome, UCBGenome, EXP3Genome,
     #                 EEEGenome]
-    genome_types = [EEEGenome]
+    genome_types = [AlegAATrGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:

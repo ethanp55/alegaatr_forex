@@ -1,9 +1,9 @@
 from aat.assumptions import Assumptions
-from market_proxy.trade import Trade
 import numpy as np
 from pandas import DataFrame
 import pickle
 from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import KNeighborsRegressor
 
 
 class AATTrainer:
@@ -13,10 +13,9 @@ class AATTrainer:
         self.recent_tuple, self.training_data = None, []
 
     # Adds a new AAT tuple to its training data
-    def create_new_tuple(self, df: DataFrame, curr_idx: int, trade: Trade) -> None:
+    def create_new_tuple(self, df: DataFrame, curr_idx: int, trade_amount: float) -> None:
         assert self.recent_tuple is None
 
-        trade_amount = abs(trade.open_price - trade.stop_loss) * trade.n_units
         new_assumptions = Assumptions(df, curr_idx, self.currency_pair, trade_amount)
 
         self.recent_tuple = new_assumptions.create_aat_tuple()
@@ -48,8 +47,10 @@ class AATTrainer:
         print('Y train shape: ' + str(y.shape))
         print(f'N neighbors: {n_neighbors}')
 
-        knn = NearestNeighbors(n_neighbors=n_neighbors)
-        knn.fit(x)
+        # knn = NearestNeighbors(n_neighbors=n_neighbors)
+        # knn.fit(x)
+        knn = KNeighborsRegressor(n_neighbors=n_neighbors)
+        knn.fit(x, y)
 
         correction_terms_file_name = f'../aat/training_data/{name_pair_time_year_str}_aat_correction_terms.pickle'
         knn_file_name = f'../aat/training_data/{name_pair_time_year_str}_aat_knn.pickle'

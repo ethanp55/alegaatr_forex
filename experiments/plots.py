@@ -100,7 +100,7 @@ def create_plots() -> None:
                     df.to_csv(f'../experiments/results/final_balances_csv/{pair_time_year_str}_final_balances.csv')
 
     # Create plots of account value over time
-    _create_account_value_plots()
+    # _create_account_value_plots()
 
     # Create bar graphs of the final balances
     _create_final_balance_bar_graphs()

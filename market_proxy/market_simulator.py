@@ -175,7 +175,8 @@ class MarketSimulator(object):
 
                 # Update AAT, if we're training it
                 if train_aat:
-                    aat_trainer.create_new_tuple(strategy_data, i, curr_trade)
+                    aat_trainer.create_new_tuple(strategy_data, i,
+                                                 strategy.percent_to_risk * simulation_results.account_balance)
 
                 # Iterate through the 5-minute data to simulate the trade
                 trade_end_date = _iterate_through_trade(curr_trade)

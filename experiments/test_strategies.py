@@ -24,7 +24,7 @@ from strategies.squeeze_pro import SqueezePro
 from strategies.stochastic import Stochastic
 from strategies.supertrend import Supertrend
 from strategies.ucb import UCB
-from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
+from utils.utils import CURRENCY_PAIRS, N_BANDIT_RUNS, TIME_FRAMES, YEARS
 
 
 def test_strategies() -> None:
@@ -37,43 +37,45 @@ def test_strategies() -> None:
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
             for year in YEARS[2:]:
-                # List of all of the regular strategies
-                # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
-                #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
-                strategies = [EEE()]
+                for _ in range(N_BANDIT_RUNS):
+                    # List of all of the regular strategies
+                    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
+                    #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
+                    #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
+                    strategies = [AlegAATr()]
 
-                pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
-                pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
+                    pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
+                    pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
 
-                print(pair_time_frame_year_str)
+                    print(pair_time_frame_year_str)
 
-                # Model names for the ML strategies (they need to load in pair-time-specific data)
-                cnn_model_name = f'CNN_{pair_time_frame_year_models_str}'
-                knn_model_name = f'KNN_{pair_time_frame_year_models_str}'
-                lstm_model_name = f'LSTM_{pair_time_frame_year_models_str}'
-                mlp_model_name = f'MLP_{pair_time_frame_year_models_str}'
-                rf_model_name = f'RandomForest_{pair_time_frame_year_models_str}'
+                    # Model names for the ML strategies (they need to load in pair-time-specific data)
+                    cnn_model_name = f'CNN_{pair_time_frame_year_models_str}'
+                    knn_model_name = f'KNN_{pair_time_frame_year_models_str}'
+                    lstm_model_name = f'LSTM_{pair_time_frame_year_models_str}'
+                    mlp_model_name = f'MLP_{pair_time_frame_year_models_str}'
+                    rf_model_name = f'RandomForest_{pair_time_frame_year_models_str}'
 
-                # List of ML strategies
-                # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
-                #                  MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
-                ml_strategies = []
+                    # List of ML strategies
+                    # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
+                    #                  MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
+                    ml_strategies = []
 
-                # List of all the strategies
-                all_strategies = strategies + ml_strategies
+                    # List of all the strategies
+                    all_strategies = strategies + ml_strategies
 
-                for strategy in all_strategies:
-                    print(strategy.name)
+                    for strategy in all_strategies:
+                        print(strategy.name)
 
-                    result = SimulationRunner.run_simulation(strategy, currency_pair, time_frame, year, False, False,
-                                                             metrics_tracker)
-                    print(result.net_reward)
+                        result = SimulationRunner.run_simulation(strategy, currency_pair, time_frame, year, False,
+                                                                 False,
+                                                                 metrics_tracker)
+                        print(result.net_reward)
 
-                    # Update the final results
-                    test_results.append((f'{strategy.name}_{pair_time_frame_year_str}', result))
+                        # Update the final results
+                        test_results.append((f'{strategy.name}_{pair_time_frame_year_str}', result))
 
-                print()
+                    print()
 
     # Save any metric data in order to perform analysis offline
     metrics_tracker.save_data([strategy.name for strategy in all_strategies])
