@@ -9,13 +9,8 @@ class EEEGenome(Genome):
         self.strategy.load_best_parameters(currency_pair, time_frame, year - 1)
 
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
-        min_num_predictions_feature = GeneticFeature([1, 2, 3, 5, 7])
-        invert_feature = GeneticFeature([True, False])
-        explore_prob_feature = GeneticFeature([0.05, 0.1, 0.15])
+        explore_prob_feature = GeneticFeature([0.05, 0.1, 0.15, 0.2, 0.25])
 
-        feature_dictionary = {'min_num_predictions': min_num_predictions_feature,
-                              'invert': invert_feature,
-                              'explore_prob': explore_prob_feature
-                              }
+        feature_dictionary = {'explore_prob': explore_prob_feature}
 
         return feature_dictionary

@@ -1,6 +1,5 @@
-from copy import deepcopy
 from market_proxy.market_simulation_results import MarketSimulationResults
-from market_proxy.trade import Trade, TradeType
+from market_proxy.trade import Trade
 import numpy as np
 from pandas import DataFrame
 import random
@@ -24,7 +23,7 @@ from typing import Optional
 
 class EEE(Strategy):
     def __init__(self, starting_idx: int = 1, percent_to_risk: float = 0.02, explore_prob: float = 0.1,
-                 genetic: bool = False, min_num_predictions: int = 1, invert: bool = False) -> None:
+                 genetic: bool = False) -> None:
         super().__init__(starting_idx, percent_to_risk, 'EEE')
         strategy_pool = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                          MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
@@ -40,8 +39,7 @@ class EEE(Strategy):
         self.agent_in_use = random.choice(list(self.experts.values()))
         self.use_tsl, self.close_trade_incrementally = \
             self.agent_in_use.use_tsl, self.agent_in_use.close_trade_incrementally
-        self.explore_prob, self.genetic, self.min_num_predictions, self.invert = \
-            explore_prob, genetic, min_num_predictions, invert
+        self.explore_prob, self.genetic = explore_prob, genetic
 
         for agent_name in self.experts.keys():
             self.m_e[agent_name] = 0
@@ -62,33 +60,6 @@ class EEE(Strategy):
 
     def trade_finished(self, net_profit: float) -> None:
         self.phase_rewards.append(net_profit)
-
-    def _invert(self, trade: Trade, curr_ao: float, curr_bo: float) -> Trade:
-        if self.invert:
-            trade_copy = deepcopy(trade)
-
-            if trade.trade_type == TradeType.BUY:
-                trade_copy.trade_type = TradeType.SELL
-                trade_copy.open_price = curr_bo
-                trade_copy.stop_loss = curr_bo + trade.pips_risked
-
-                if trade.stop_gain is not None:
-                    stop_gain_pips = abs(trade.stop_gain - trade.open_price)
-                    trade_copy.stop_gain = curr_bo - stop_gain_pips
-
-            else:
-                trade_copy.trade_type = TradeType.BUY
-                trade_copy.open_price = curr_ao
-                trade_copy.stop_loss = curr_ao - trade.pips_risked
-
-                if trade.stop_gain is not None:
-                    stop_gain_pips = abs(trade.stop_gain - trade.open_price)
-                    trade_copy.stop_gain = curr_ao + stop_gain_pips
-
-            return trade_copy
-
-        else:
-            return trade
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
@@ -140,18 +111,10 @@ class EEE(Strategy):
         trade = self.agent_in_use.place_trade(curr_idx, strategy_data, currency_pair, account_balance)
 
         if trade is not None:
-            n_predictions = 0
+            self.use_tsl, self.close_trade_incrementally = \
+                self.agent_in_use.use_tsl, self.agent_in_use.close_trade_incrementally
 
-            for expert in self.experts.values():
-                possible_trade = expert.place_trade(curr_idx, strategy_data, currency_pair, account_balance)
-                n_predictions += 1 if possible_trade is not None else 0
-
-            if n_predictions >= self.min_num_predictions:
-                curr_ao, curr_bo = strategy_data.loc[strategy_data.index[curr_idx], ['Ask_Open', 'Bid_Open']]
-
-                return self._invert(trade, curr_ao, curr_bo)
-
-        return None
+        return trade
 
     def move_stop_loss(self, curr_idx: int, market_data: DataFrame, trade: Trade) -> Trade:
         if self.use_tsl:

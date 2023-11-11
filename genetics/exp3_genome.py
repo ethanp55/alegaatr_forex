@@ -9,13 +9,8 @@ class EXP3Genome(Genome):
         self.strategy.load_best_parameters(currency_pair, time_frame, year - 1)
 
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
-        min_num_predictions_feature = GeneticFeature([1, 2, 3, 5, 7])
-        invert_feature = GeneticFeature([True, False])
-        gamma_feature = GeneticFeature([0.4, 0.5, 0.6])
+        gamma_feature = GeneticFeature([0.3, 0.4, 0.5, 0.6, 0.7, 0.8])
 
-        feature_dictionary = {'min_num_predictions': min_num_predictions_feature,
-                              'invert': invert_feature,
-                              'gamma': gamma_feature
-                              }
+        feature_dictionary = {'gamma': gamma_feature}
 
         return feature_dictionary
