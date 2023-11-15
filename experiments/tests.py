@@ -70,11 +70,68 @@ def run_tests() -> None:
         df = pd.DataFrame([ratios], columns=strategy_names)
         df.to_csv(f'../experiments/results/ratios_csv/profitable_ratios.csv')
 
+    def _test_profits() -> None:
+        profits_by_strategy = {}
+        file_list = os.listdir('../experiments/results/')
+        filtered_file_list = [file_name for file_name in file_list if
+                              ('final_balances' in file_name and 'csv' not in file_name)]
+
+        for file_name in filtered_file_list:
+            strategy_name = file_name.split('_')[0]
+            profit = float(pickle.load(open(f'../experiments/results/{file_name}', 'rb')) - 10000)
+
+            profits_by_strategy[strategy_name] = profits_by_strategy.get(strategy_name, []) + [
+                profit]
+
+        data, groups = [], []
+
+        for strategy, profits in profits_by_strategy.items():
+            data.extend(profits)
+            groups.extend([strategy] * len(profits))
+
+        mc = MultiComparison(data, groups)
+        result = mc.tukeyhsd()
+
+        print(result.summary())
+
+    def _test_bandit_profits() -> None:
+        profits_by_strategy = {}
+        file_list = os.listdir('../experiments/results/')
+        filtered_file_list = [file_name for file_name in file_list if
+                              ('final_balances' in file_name and 'csv' not in file_name)]
+        bandit_strategy_names = ['AlegAATr', 'UCB', 'EXP3', 'EEE']
+
+        for file_name in filtered_file_list:
+            strategy_name = file_name.split('_')[0]
+
+            if strategy_name in bandit_strategy_names:
+                profit = float(pickle.load(open(f'../experiments/results/{file_name}', 'rb')) - 10000)
+
+                profits_by_strategy[strategy_name] = profits_by_strategy.get(strategy_name, []) + [
+                    profit]
+
+        data, groups = [], []
+
+        for strategy, profits in profits_by_strategy.items():
+            data.extend(profits)
+            groups.extend([strategy] * len(profits))
+
+        mc = MultiComparison(data, groups)
+        result = mc.tukeyhsd()
+
+        print(result.summary())
+
     # Extract info about trade amounts and run multi-comparison tests
     # _test_trade_amounts()
 
     # Extract the overall profitable ratios for each strategy
-    _extract_profitable_ratios()
+    # _extract_profitable_ratios()
+
+    # Run multi-comparison test on final profit amounts
+    # _test_profits()
+
+    # Run multi-comparison test on final profit amounts
+    _test_bandit_profits()
 
 
 if __name__ == "__main__":

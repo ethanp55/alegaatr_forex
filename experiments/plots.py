@@ -86,12 +86,12 @@ def create_plots() -> None:
                     # Bar graph containing final balances for each strategy
                     cmap = get_cmap('tab20')
                     bar_colors = [cmap(i % 20) for i in range(len(strategy_names))]
-                    plt.figure(figsize=(20, 12))
+                    plt.grid()
                     plt.bar(strategy_names, final_balances, color=bar_colors)
-                    plt.xlabel('Strategy', fontsize=20)
-                    plt.xticks(rotation=45)
-                    plt.ylabel('Final Account Balance', fontsize=20)
-                    plt.title(f'Final Account Balances on {pair_time_year_str}', fontsize=26)
+                    plt.xlabel('Strategy')
+                    plt.xticks(rotation=90)
+                    plt.ylabel('Final Account Balance')
+                    plt.title(f'Final Account Balances on {pair_time_year_str}')
                     plt.savefig(f'../experiments/plots/{pair_time_year_str}_final_balances', bbox_inches='tight')
                     plt.clf()
 

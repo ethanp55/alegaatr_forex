@@ -54,6 +54,8 @@ class AlegAATr(Strategy):
     def print_parameters(self) -> None:
         print(f'min_num_predictions: {self.min_num_predictions}')
         print(f'use_single_selection: {self.use_single_selection}')
+        print(f'lmbda: {self.lmbda}')
+        print(f'optimistic_start: {self.optimistic_start}')
 
     def _clear_metric_tracking_vars(self) -> None:
         self.prev_prediction = None

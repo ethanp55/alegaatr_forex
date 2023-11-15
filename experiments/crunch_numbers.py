@@ -1,4 +1,6 @@
 import os
+from matplotlib.cm import get_cmap
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
@@ -76,6 +78,18 @@ def crunch_numbers() -> None:
         for strategy, profit in profit_with_names:
             print(f'{strategy}\'s total profit: {profit}')
 
+        names, sums = [tup[0] for tup in profit_with_names], [tup[1] for tup in profit_with_names]
+        cmap = get_cmap('tab20')
+        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        plt.grid()
+        plt.bar(names, sums, color=bar_colors)
+        plt.xlabel('Strategy')
+        plt.xticks(rotation=90)
+        plt.ylabel('Profit Sum')
+        plt.title(f'Total Profit Sum (Across Every Test Condition)')
+        plt.savefig(f'../experiments/plots/report/profit_sums', bbox_inches='tight')
+        plt.clf()
+
         print()
 
         # Print the profit results for each currency and time frame pair
@@ -106,10 +120,40 @@ def crunch_numbers() -> None:
 
             print()
 
-        for strategy, profits in all_profits.items():
+        all_profits_averages, all_profits_sds, names = [], [], []
+
+        for strategy, profits in sorted(all_profits.items(), key=lambda item: sum(item[1]) / len(item[1]),
+                                        reverse=True):
             profits_array = np.array(profits)
-            print(f'{strategy}\'s avg profit: {profits_array.mean()}, med profit: {np.median(profits_array)}, '
-                  f'profit std: {profits_array.std()}, min: {profits_array.min()}, max: {profits_array.max()}')
+            avg, sd = profits_array.mean(), profits_array.std()
+            print(f'{strategy}\'s avg profit: {avg}, med profit: {np.median(profits_array)}, '
+                  f'profit std: {sd}, min: {profits_array.min()}, max: {profits_array.max()}')
+
+            all_profits_averages.append(avg)
+            all_profits_sds.append(sd)
+            names.append(strategy)
+
+        cmap = get_cmap('tab20')
+        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        plt.grid()
+        plt.bar(names, all_profits_averages, color=bar_colors)
+        plt.xlabel('Strategy')
+        plt.xticks(rotation=90)
+        plt.ylabel('Average Profit Amount')
+        plt.title(f'Average Profit Amounts (Across Every Test Condition)')
+        plt.savefig(f'../experiments/plots/report/avg_profit_amounts', bbox_inches='tight')
+        plt.clf()
+
+        cmap = get_cmap('tab20')
+        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        plt.grid()
+        plt.bar(names, all_profits_averages, yerr=all_profits_sds, color=bar_colors)
+        plt.xlabel('Strategy')
+        plt.xticks(rotation=90)
+        plt.ylabel('Average Profit Amount')
+        plt.title(f'Average Profit Amounts (Across Every Test Condition)')
+        plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_sd', bbox_inches='tight')
+        plt.clf()
 
     def profitable_ratios() -> None:
         # Print out the profit ratio of the test sets

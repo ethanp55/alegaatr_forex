@@ -19,7 +19,7 @@ from strategies.rsi import RSI
 from strategies.squeeze_pro import SqueezePro
 from strategies.stochastic import Stochastic
 from strategies.supertrend import Supertrend
-from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
+from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 
 
 def print_best_params() -> None:
@@ -30,31 +30,32 @@ def print_best_params() -> None:
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
-            pair_time_frame_str = f'{currency_pair}_{time_frame}'
-            cnn_model_name = f'CNN_{pair_time_frame_str}'
-            knn_model_name = f'KNN_{pair_time_frame_str}'
-            lstm_model_name = f'LSTM_{pair_time_frame_str}'
-            mlp_model_name = f'MLP_{pair_time_frame_str}'
-            rf_model_name = f'RandomForest_{pair_time_frame_str}'
+            for year in YEARS[1:-1]:
+                pair_time_frame_str = f'{currency_pair}_{time_frame}'
+                cnn_model_name = f'CNN_{pair_time_frame_str}'
+                knn_model_name = f'KNN_{pair_time_frame_str}'
+                lstm_model_name = f'LSTM_{pair_time_frame_str}'
+                mlp_model_name = f'MLP_{pair_time_frame_str}'
+                rf_model_name = f'RandomForest_{pair_time_frame_str}'
 
-            # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
-            #                  MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
-            ml_strategies = []
+                # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
+                #                  MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
+                ml_strategies = []
 
-            all_strategies = strategies + ml_strategies
+                all_strategies = strategies + ml_strategies
 
-            print(f'{pair_time_frame_str}')
+                print(f'{pair_time_frame_str}')
 
-            for strategy in all_strategies:
-                try:
-                    strategy.load_best_parameters(currency_pair, time_frame)
-                    print(f'{strategy.name}')
-                    strategy.print_parameters()
+                for strategy in all_strategies:
+                    try:
+                        strategy.load_best_parameters(currency_pair, time_frame, year)
+                        print(f'{strategy.name}')
+                        strategy.print_parameters()
 
-                except:
-                    pass
-
-            print()
+                    except:
+                        pass
+    
+                print()
 
 
 if __name__ == "__main__":
