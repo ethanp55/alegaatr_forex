@@ -23,10 +23,10 @@ class Strategy:
         pass
 
     # Loads in the best parameter values that were estimated by the genetic algorithm
-    def load_best_parameters(self, currency_pair: str, time_frame: str, year: int) -> None:
-        pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
+    def load_best_parameters(self, currency_pair: str, time_frame: str) -> None:
+        pair_time_frame_str = f'{currency_pair}_{time_frame}'
         best_params_dictionary = pickle.load(
-            open(f'../genetics/best_genome_features/{self.name}_{pair_time_frame_year_str}_features.pickle', 'rb'))
+            open(f'../genetics/best_genome_features/{self.name}_{pair_time_frame_str}_features.pickle', 'rb'))
 
         for attribute_name, val in best_params_dictionary.items():
             self.__setattr__(attribute_name, val)

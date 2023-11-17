@@ -4,8 +4,8 @@ from typing import Dict
 
 
 class RSIGenome(Genome):
-    def __init__(self, currency_pair: str, time_frame: str, year: int) -> None:
-        super().__init__(currency_pair, time_frame, year, RSI())
+    def __init__(self, currency_pair: str, time_frame: str) -> None:
+        super().__init__(currency_pair, time_frame, RSI())
 
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
         ma_key_feature = GeneticFeature([None, 'ema200', 'ema100', 'ema50', 'smma200', 'smma100', 'smma50'])

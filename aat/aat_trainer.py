@@ -7,9 +7,8 @@ from sklearn.neighbors import KNeighborsRegressor
 
 
 class AATTrainer:
-    def __init__(self, currency_pair: str, strategy_name: str, time_frame: str, year: int) -> None:
-        self.currency_pair, self.strategy_name, self.time_frame, self.year = \
-            currency_pair, strategy_name, time_frame, year
+    def __init__(self, currency_pair: str, strategy_name: str, time_frame: str) -> None:
+        self.currency_pair, self.strategy_name, self.time_frame = currency_pair, strategy_name, time_frame
         self.recent_tuple, self.training_data = None, []
 
     # Adds a new AAT tuple to its training data
@@ -36,13 +35,13 @@ class AATTrainer:
 
     # Trains a KNN model, saves the model, and saves the AAT correction terms
     def save(self) -> None:
-        name_pair_time_year_str = f'{self.strategy_name}_{self.currency_pair}_{self.time_frame}_{self.year}'
+        name_pair_time_str = f'{self.strategy_name}_{self.currency_pair}_{self.time_frame}'
 
         x = np.array(self.training_data, dtype=float)[:, 0:-2]  # Assumptions - convert any booleans to floats
         y = np.array(self.training_data)[:, -1]  # Correction terms
         n_neighbors = int(len(x) ** 0.5)
 
-        print(f'X and Y data for {name_pair_time_year_str}')
+        print(f'X and Y data for {name_pair_time_str}')
         print('X train shape: ' + str(x.shape))
         print('Y train shape: ' + str(y.shape))
         print(f'N neighbors: {n_neighbors}')
@@ -52,8 +51,8 @@ class AATTrainer:
         knn = KNeighborsRegressor(n_neighbors=n_neighbors)
         knn.fit(x, y)
 
-        correction_terms_file_name = f'../aat/training_data/{name_pair_time_year_str}_aat_correction_terms.pickle'
-        knn_file_name = f'../aat/training_data/{name_pair_time_year_str}_aat_knn.pickle'
+        correction_terms_file_name = f'../aat/training_data/{name_pair_time_str}_aat_correction_terms.pickle'
+        knn_file_name = f'../aat/training_data/{name_pair_time_str}_aat_knn.pickle'
 
         # Save the corrections and KNN model
         with open(correction_terms_file_name, 'wb') as f:

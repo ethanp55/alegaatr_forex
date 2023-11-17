@@ -36,7 +36,7 @@ def test_strategies() -> None:
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
-            for year in YEARS[2:]:
+            for year in YEARS:
                 for _ in range(N_BANDIT_RUNS):
                     # List of all of the regular strategies
                     # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
@@ -67,9 +67,8 @@ def test_strategies() -> None:
                     for strategy in all_strategies:
                         print(strategy.name)
 
-                        result = SimulationRunner.run_simulation(strategy, currency_pair, time_frame, year, False,
-                                                                 False,
-                                                                 metrics_tracker)
+                        result = SimulationRunner.run_simulation(strategy, currency_pair, time_frame, False, False,
+                                                                 metrics_tracker, year)
                         print(result.net_reward)
 
                         # Update the final results

@@ -4,9 +4,9 @@ from typing import Dict
 
 
 class CNNGenome(Genome):
-    def __init__(self, currency_pair: str, time_frame: str, year: int) -> None:
-        pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
-        super().__init__(currency_pair, time_frame, year, CNNStrategy(f'CNN_{pair_time_frame_year_str}'))
+    def __init__(self, currency_pair: str, time_frame: str) -> None:
+        pair_time_frame_str = f'{currency_pair}_{time_frame}'
+        super().__init__(currency_pair, time_frame, CNNStrategy(f'CNN_{pair_time_frame_str}'))
 
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
         ma_key_feature = GeneticFeature([None, 'ema200', 'ema100', 'ema50', 'smma200', 'smma100', 'smma50'])

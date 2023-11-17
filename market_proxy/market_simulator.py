@@ -1,7 +1,6 @@
 from aat.aat_trainer import AATTrainer
 from datetime import datetime
 from experiments.metrics_tracker import MetricsTracker
-import os.path
 from pandas import DataFrame
 from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
@@ -15,7 +14,7 @@ from utils.technical_indicators import TechnicalIndicators
 class MarketSimulator(object):
     @staticmethod
     def run_simulation(strategy: Strategy, market_data_raw: DataFrame, strategy_data_raw: DataFrame, currency_pair: str,
-                       time_frame: str, year: int, starting_balance: float = 10000.0,
+                       time_frame: str, year: Optional[int] = None, starting_balance: float = 10000.0,
                        train_aat: bool = False,
                        metrics_tracker: Optional[MetricsTracker] = None) -> MarketSimulationResults:
         # Numerical results we keep track of
@@ -149,7 +148,7 @@ class MarketSimulator(object):
             return None
 
         # Create an AAT trainer (will only be used if we're running this simulation to train AAT)
-        aat_trainer = AATTrainer(currency_pair, strategy.name, time_frame, year)
+        aat_trainer = AATTrainer(currency_pair, strategy.name, time_frame)
 
         # Iterate through the strategies data (either on the H4, H1, or M30 time frames)
         while i < len(strategy_data):

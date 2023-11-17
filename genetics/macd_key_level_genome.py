@@ -4,8 +4,8 @@ from typing import Dict
 
 
 class MACDKeyLevelGenome(Genome):
-    def __init__(self, currency_pair: str, time_frame: str, year: int) -> None:
-        super().__init__(currency_pair, time_frame, year, MACDKeyLevel())
+    def __init__(self, currency_pair: str, time_frame: str) -> None:
+        super().__init__(currency_pair, time_frame, MACDKeyLevel())
 
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
         macd_type_feature = GeneticFeature(['macd', 'n_macd', 'impulse_macd'])

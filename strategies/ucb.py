@@ -39,14 +39,14 @@ class UCB(Strategy):
         self.delta, self.genetic = delta, genetic
         self.expert_name = None
 
-    def load_best_parameters(self, currency_pair: str, time_frame: str, year: int) -> None:
+    def load_best_parameters(self, currency_pair: str, time_frame: str) -> None:
         if not self.genetic:
-            super().load_best_parameters(currency_pair, time_frame, year)
+            super().load_best_parameters(currency_pair, time_frame)
 
         for generator in self.experts.values():
             try:
                 # Make sure the generator is using its "best" parameters for the given currency pair and time frame
-                generator.load_best_parameters(currency_pair, time_frame, year)
+                generator.load_best_parameters(currency_pair, time_frame)
 
             except:
                 continue

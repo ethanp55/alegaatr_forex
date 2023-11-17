@@ -8,16 +8,17 @@ from typing import Optional
 
 class SimulationRunner(object):
     @staticmethod
-    def run_simulation(strategy: Strategy, currency_pair: str, time_frame: str, year: int, optimize: bool,
-                       train_aat: bool = False,
-                       metrics_tracker: Optional[MetricsTracker] = None) -> MarketSimulationResults:
-        market_data_raw = DataLoader.load_simulation_data(currency_pair, 'M5', optimize, year)
-        strategy_data_raw = DataLoader.load_simulation_data(currency_pair, time_frame, optimize, year)
+    def run_simulation(strategy: Strategy, currency_pair: str, time_frame: str, optimize: bool, train_aat: bool = False,
+                       metrics_tracker: Optional[MetricsTracker] = None,
+                       year: Optional[int] = None) -> MarketSimulationResults:
+        market_data_raw = DataLoader.load_simulation_data(currency_pair, 'M5', optimize)
+        strategy_data_raw = DataLoader.load_simulation_data(currency_pair, time_frame, optimize)
 
         # If we're running on test data (i.e. we're not optimizing anything), load in the strategy's "best" parameters
         try:
             if not optimize:
-                strategy.load_best_parameters(currency_pair, time_frame, year - 1)
+                assert year is not None
+                strategy.load_best_parameters(currency_pair, time_frame)
 
         except:
             # Case where there are no "best" parameters because they did not yield a positive net reward

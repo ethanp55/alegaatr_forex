@@ -25,7 +25,7 @@ from genetics.stochastic_genome import StochasticGenome
 from genetics.supertrend_genome import SupertrendGenome
 from genetics.ucb_genome import UCBGenome
 from multiprocessing import Pool
-from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
+from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
 def optimize_genomes() -> None:
@@ -38,13 +38,12 @@ def optimize_genomes() -> None:
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
-            for year in YEARS[1:-1]:
-                # Creates a new process for each genome type
-                pool = Pool(processes=len(genome_types))
-                pool.map(
-                    partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, year=year,
-                            population_size=4),
-                    genome_types)
+            # Creates a new process for each genome type
+            pool = Pool(processes=len(genome_types))
+            pool.map(
+                partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, n_iterations=10,
+                        population_size=10),
+                genome_types)
 
 
 if __name__ == "__main__":

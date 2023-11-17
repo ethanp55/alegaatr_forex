@@ -97,29 +97,29 @@ class AlegAATr(Strategy):
     def trade_finished(self, net_profit: float) -> None:
         self.empirical_rewards[self.generator_in_use_name].append(net_profit)
 
-    def load_best_parameters(self, currency_pair: str, time_frame: str, year: int) -> None:
+    def load_best_parameters(self, currency_pair: str, time_frame: str) -> None:
         if not self.genetic:
-            super().load_best_parameters(currency_pair, time_frame, year)
+            super().load_best_parameters(currency_pair, time_frame)
 
         for generator in self.generators:
             try:
                 # Make sure the generator is using its "best" parameters for the given currency pair and time frame
-                generator.load_best_parameters(currency_pair, time_frame, year)
+                generator.load_best_parameters(currency_pair, time_frame)
 
                 # Load the KNN model and correction terms for the generator on the given currency pair and time frame
                 strategy_name = generator.name
-                name_pair_time_year_str = f'{strategy_name}_{currency_pair}_{time_frame}_{year}'
+                name_pair_time_str = f'{strategy_name}_{currency_pair}_{time_frame}'
                 correction_terms_file_name = \
-                    f'../aat/training_data/{name_pair_time_year_str}_aat_correction_terms.pickle'
-                knn_file_name = f'../aat/training_data/{name_pair_time_year_str}_aat_knn.pickle'
+                    f'../aat/training_data/{name_pair_time_str}_aat_correction_terms.pickle'
+                knn_file_name = f'../aat/training_data/{name_pair_time_str}_aat_knn.pickle'
                 self.models[strategy_name] = pickle.load(open(knn_file_name, 'rb'))
                 self.correction_terms[strategy_name] = pickle.load(open(correction_terms_file_name, 'rb'))
 
             except:
                 continue
 
-        self.optimistic_start = True
-        self.lmbda = 1.0
+        if self.lmbda == 1.0:
+            self.optimistic_start = True
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:

@@ -8,8 +8,8 @@ from typing import List, Tuple
 class GeneticAlgorithm(object):
     # Runs the genetic algorithm
     @staticmethod
-    def run(genome_type: type, currency_pair: str, time_frame: str, year: int, n_iterations: int = 3,
-            population_size: int = 10, possible_n_mutations_ratio: float = 0.25) -> None:
+    def run(genome_type: type, currency_pair: str, time_frame: str, n_iterations: int = 10, population_size: int = 10,
+            possible_n_mutations_ratio: float = 0.25) -> None:
         # Placeholders for the population and list of new genomes (used to updated the population)
         population, new_genomes = None, []
 
@@ -19,7 +19,7 @@ class GeneticAlgorithm(object):
 
             # Initialize or update the population - whenever a new population is created, the performances are
             # automatically calculated
-            population = GeneticAlgorithm._initialize_population(genome_type, currency_pair, time_frame, year,
+            population = GeneticAlgorithm._initialize_population(genome_type, currency_pair, time_frame,
                                                                  population_size) if population is None else Population(
                 new_genomes)
 
@@ -37,7 +37,7 @@ class GeneticAlgorithm(object):
 
             strategy_name = best_genome.strategy.name
 
-            print(f'{strategy_name} on {currency_pair} {time_frame} {year}: best performance = {best_performance}, '
+            print(f'{strategy_name} on {currency_pair} {time_frame}: best performance = {best_performance}, '
                   f'second-best performance = {second_best_performance}, worst performance = {worst_performance}')
 
             new_genomes = [best_genome, second_best_genome]
@@ -65,10 +65,10 @@ class GeneticAlgorithm(object):
 
     # Initializes the genome population
     @staticmethod
-    def _initialize_population(genome_type: type, currency_pair: str, time_frame: str, year: int,
+    def _initialize_population(genome_type: type, currency_pair: str, time_frame: str,
                                population_size: int) -> Population:
         assert issubclass(genome_type, Genome)
-        genomes = [genome_type(currency_pair, time_frame, year) for _ in range(population_size)]
+        genomes = [genome_type(currency_pair, time_frame) for _ in range(population_size)]
 
         return Population(genomes)
 
