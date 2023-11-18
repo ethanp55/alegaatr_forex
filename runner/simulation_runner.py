@@ -11,8 +11,8 @@ class SimulationRunner(object):
     def run_simulation(strategy: Strategy, currency_pair: str, time_frame: str, optimize: bool, train_aat: bool = False,
                        metrics_tracker: Optional[MetricsTracker] = None,
                        year: Optional[int] = None) -> MarketSimulationResults:
-        market_data_raw = DataLoader.load_simulation_data(currency_pair, 'M5', optimize)
-        strategy_data_raw = DataLoader.load_simulation_data(currency_pair, time_frame, optimize)
+        market_data_raw = DataLoader.load_simulation_data(currency_pair, 'M5', optimize, year)
+        strategy_data_raw = DataLoader.load_simulation_data(currency_pair, time_frame, optimize, year)
 
         # If we're running on test data (i.e. we're not optimizing anything), load in the strategy's "best" parameters
         try:
