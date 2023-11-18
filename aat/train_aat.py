@@ -15,7 +15,7 @@ from strategies.rsi import RSI
 from strategies.squeeze_pro import SqueezePro
 from strategies.stochastic import Stochastic
 from strategies.supertrend import Supertrend
-from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
+from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
 def train_aat() -> None:
@@ -25,28 +25,27 @@ def train_aat() -> None:
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
-            for year in YEARS[:-1]:
-                strategies_to_train = []
+            strategies_to_train = []
 
-                # Make sure the "best" versions of each strategy are used for training AAT
-                for strategy_type in strategy_types:
-                    strategy = strategy_type()
+            # Make sure the "best" versions of each strategy are used for training AAT
+            for strategy_type in strategy_types:
+                strategy = strategy_type()
 
-                    try:
-                        strategy.load_best_parameters(currency_pair, time_frame, year)
-                        strategies_to_train.append(strategy)
+                try:
+                    strategy.load_best_parameters(currency_pair, time_frame)
+                    strategies_to_train.append(strategy)
 
-                    except:
-                        pass  # Do nothing if there are no "best" parameters for the strategy
+                except:
+                    pass  # Do nothing if there are no "best" parameters for the strategy
 
-                # Unlikely to happen, but if there are no "best" parameters for any of the strategies (the list of
-                # strategies is empty), then just continue to the next pair-time combination
-                if len(strategies_to_train) == 0:
-                    continue
+            # Unlikely to happen, but if there are no "best" parameters for any of the strategies (the list of
+            # strategies is empty), then just continue to the next pair-time combination
+            if len(strategies_to_train) == 0:
+                continue
 
-                pool = Pool(processes=len(strategies_to_train))
-                pool.map(partial(SimulationRunner.run_simulation, currency_pair=currency_pair, time_frame=time_frame,
-                                 year=year, optimize=True, train_aat=True), strategies_to_train)
+            pool = Pool(processes=len(strategies_to_train))
+            pool.map(partial(SimulationRunner.run_simulation, currency_pair=currency_pair, time_frame=time_frame,
+                             optimize=True, train_aat=True), strategies_to_train)
 
 
 if __name__ == "__main__":
