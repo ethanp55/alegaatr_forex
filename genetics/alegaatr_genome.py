@@ -10,7 +10,7 @@ class AlegAATrGenome(Genome):
 
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
         optimistic_start_feature = GeneticFeature([True, False])
-        lmbda_feature = GeneticFeature([0.9, 0.95, 0.99, 0.995, 0.999])
+        lmbda_feature = GeneticFeature([0.9, 0.95, 0.99, 0.995, 1.0])
 
         feature_dictionary = {'optimistic_start': optimistic_start_feature,
                               'lmbda': lmbda_feature}

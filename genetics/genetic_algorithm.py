@@ -47,6 +47,7 @@ class GeneticAlgorithm(object):
                 print(f'Updating {strategy_name} features that yielded {best_performance} on {currency_pair} '
                       f'{time_frame}')
                 best_genome.save_features()
+                print(best_genome.strategy.print_parameters())
 
             # Generate the remainder of the new population
             for j in range(int(population_size / 2) - 1):

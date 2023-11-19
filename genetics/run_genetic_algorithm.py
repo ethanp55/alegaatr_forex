@@ -41,8 +41,8 @@ def optimize_genomes() -> None:
             # Creates a new process for each genome type
             pool = Pool(processes=len(genome_types))
             pool.map(
-                partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, n_iterations=10,
-                        population_size=10),
+                partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, n_iterations=3,
+                        population_size=4),
                 genome_types)
 
 
