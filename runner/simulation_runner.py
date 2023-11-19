@@ -17,11 +17,14 @@ class SimulationRunner(object):
         # If we're running on test data (i.e. we're not optimizing anything), load in the strategy's "best" parameters
         try:
             if not optimize:
-                assert year is not None
+                assert year is not None and metrics_tracker is not None
                 strategy.load_best_parameters(currency_pair, time_frame)
 
         except:
             # Case where there are no "best" parameters because they did not yield a positive net reward
+            metrics_tracker.increment_profitable_testing(strategy.name, currency_pair, time_frame, year, True)
+            metrics_tracker.update_final_balance(strategy.name, currency_pair, time_frame, year, 10000.0)
+
             return MarketSimulationResults(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
         return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair, time_frame,
