@@ -118,6 +118,7 @@ class AlegAATr(Strategy):
             except:
                 continue
 
+        self.lmbda = 1.0
         if self.lmbda == 1.0:
             self.optimistic_start = True
 

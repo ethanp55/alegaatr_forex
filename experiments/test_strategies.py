@@ -42,7 +42,7 @@ def test_strategies() -> None:
                     # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                     #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
                     #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
-                    strategies = [UCB(), EXP3(), EEE()]
+                    strategies = [AlegAATr()]
 
                     pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                     pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
