@@ -8,7 +8,7 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 def crunch_numbers() -> None:
     def total_profit() -> None:
-        all_profits, m30_profits, h1_profits, h4_profits = {}, {}, {}, {}
+        all_profits, recent_two_profits, m30_profits, h1_profits, h4_profits = {}, {}, {}, {}, {}
         all_profit_sums, m30_profit_sums, h1_profit_sums, h4_profit_sums = {}, {}, {}, {}
         directory = '../experiments/results/final_balances_csv/'
         file_list = os.listdir(directory)
@@ -40,6 +40,9 @@ def crunch_numbers() -> None:
                 else:
                     h4_profits[strategy] = h4_profits.get(strategy, []) + [profit]
                     h4_profit_sums[strategy] = h4_profit_sums.get(strategy, 0) + profit
+
+                if '2021' in file_name or '2022' in file_name:
+                    recent_two_profits[strategy] = recent_two_profits.get(strategy, []) + [profit]
 
             for pair_time_frame in results_by_pair_time_frame.keys():
                 if pair_time_frame in file_name:
@@ -120,7 +123,7 @@ def crunch_numbers() -> None:
 
             print()
 
-        all_profits_averages, all_profits_sds, names = [], [], []
+        all_profits_averages, all_profits_ses, names = [], [], []
 
         for strategy, profits in sorted(all_profits.items(), key=lambda item: sum(item[1]) / len(item[1]),
                                         reverse=True):
@@ -130,7 +133,7 @@ def crunch_numbers() -> None:
                   f'profit std: {sd}, min: {profits_array.min()}, max: {profits_array.max()}')
 
             all_profits_averages.append(avg)
-            all_profits_sds.append(sd)
+            all_profits_ses.append(sd / len(profits_array) ** 0.5)
             names.append(strategy)
 
         cmap = get_cmap('tab20')
@@ -147,12 +150,44 @@ def crunch_numbers() -> None:
         cmap = get_cmap('tab20')
         bar_colors = [cmap(i % 20) for i in range(len(names))]
         plt.grid()
-        plt.bar(names, all_profits_averages, yerr=all_profits_sds, color=bar_colors)
+        plt.bar(names, all_profits_averages, yerr=all_profits_ses, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
         plt.ylabel('Average Profit Amount')
-        plt.title(f'Average Profit Amounts (Across Every Test Condition)')
-        plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_sd', bbox_inches='tight')
+        plt.title(f'Average Profit Amounts (Across Every Test Condition) With Standard Errors')
+        plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_se', bbox_inches='tight')
+        plt.clf()
+
+        profits_averages, profits_ses, names = [], [], []
+
+        for strategy, profits in sorted(recent_two_profits.items(), key=lambda item: sum(item[1]) / len(item[1]),
+                                        reverse=True):
+            profits_array = np.array(profits)
+            avg, sd = profits_array.mean(), profits_array.std()
+            profits_averages.append(avg)
+            profits_ses.append(sd / len(profits_array) ** 0.5)
+            names.append(strategy)
+
+        cmap = get_cmap('tab20')
+        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        plt.grid()
+        plt.bar(names, profits_averages, color=bar_colors)
+        plt.xlabel('Strategy')
+        plt.xticks(rotation=90)
+        plt.ylabel('Average Profit Amount')
+        plt.title(f'Average Profit Amounts (2021-2023)')
+        plt.savefig(f'../experiments/plots/report/avg_profit_amounts_recent_two', bbox_inches='tight')
+        plt.clf()
+
+        cmap = get_cmap('tab20')
+        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        plt.grid()
+        plt.bar(names, profits_averages, yerr=profits_ses, color=bar_colors)
+        plt.xlabel('Strategy')
+        plt.xticks(rotation=90)
+        plt.ylabel('Average Profit Amount')
+        plt.title(f'Average Profit Amounts (2021-2023) With Standard Errors')
+        plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_se_recent_two', bbox_inches='tight')
         plt.clf()
 
     def profitable_ratios() -> None:
