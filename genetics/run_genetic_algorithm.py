@@ -34,7 +34,7 @@ def optimize_genomes() -> None:
     #                 RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
     #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome, UCBGenome, EXP3Genome,
     #                 EEEGenome]
-    genome_types = [AlegAATrGenome]
+    genome_types = [EnsembleGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
@@ -43,7 +43,7 @@ def optimize_genomes() -> None:
                 pool = Pool(processes=len(genome_types))
                 pool.map(
                     partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, year=year,
-                            population_size=4),
+                            population_size=10, n_iterations=10),
                     genome_types)
 
 

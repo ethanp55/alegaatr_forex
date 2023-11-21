@@ -118,8 +118,9 @@ class AlegAATr(Strategy):
             except:
                 continue
 
-        self.optimistic_start = True
         self.lmbda = 1.0
+        if self.lmbda == 1.0:
+            self.optimistic_start = True
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:

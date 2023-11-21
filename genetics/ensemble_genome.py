@@ -49,14 +49,14 @@ class EnsembleGenome(Genome):
 
         for strategy in all_strategies:
             try:
-                strategy.load_best_parameters(self.currency_pair, self.time_frame)
+                strategy.load_best_parameters(self.currency_pair, self.time_frame, self.year - 1)
                 strategies.append(strategy)
 
             except:
                 continue
 
         strategy_pool_index_feature = EnsembleGeneticFeature(strategies)
-        min_num_predictions_feature = GeneticFeature([2, 3, 5, 7, 9])
+        min_num_predictions_feature = GeneticFeature([1, 2, 3, 5, 7])
 
         feature_dictionary = {'strategy_pool': strategy_pool_index_feature,
                               'min_num_predictions': min_num_predictions_feature}

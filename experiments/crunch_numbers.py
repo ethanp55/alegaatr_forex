@@ -123,7 +123,7 @@ def crunch_numbers() -> None:
 
             print()
 
-        all_profits_averages, all_profits_ses, names = [], [], []
+        all_profs, names = [], []
 
         for strategy, profits in sorted(all_profits.items(), key=lambda item: sum(item[1]) / len(item[1]),
                                         reverse=True):
@@ -132,14 +132,14 @@ def crunch_numbers() -> None:
             print(f'{strategy}\'s avg profit: {avg}, med profit: {np.median(profits_array)}, '
                   f'profit std: {sd}, min: {profits_array.min()}, max: {profits_array.max()}')
 
-            all_profits_averages.append(avg)
-            all_profits_ses.append(sd / len(profits_array) ** 0.5)
+            all_profs.append(profits_array)
             names.append(strategy)
 
+        avgs = [arry.mean() for arry in all_profs]
         cmap = get_cmap('tab20')
         bar_colors = [cmap(i % 20) for i in range(len(names))]
         plt.grid()
-        plt.bar(names, all_profits_averages, color=bar_colors)
+        plt.bar(names, avgs, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
         plt.ylabel('Average Profit Amount')
@@ -147,15 +147,29 @@ def crunch_numbers() -> None:
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts', bbox_inches='tight')
         plt.clf()
 
+        standard_errors = [arry.std() / len(arry) ** 0.5 for arry in all_profs]
         cmap = get_cmap('tab20')
         bar_colors = [cmap(i % 20) for i in range(len(names))]
         plt.grid()
-        plt.bar(names, all_profits_averages, yerr=all_profits_ses, color=bar_colors)
+        plt.bar(names, avgs, yerr=standard_errors, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
         plt.ylabel('Average Profit Amount')
         plt.title(f'Average Profit Amounts (Across Every Test Condition) With Standard Errors')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_se', bbox_inches='tight')
+        plt.clf()
+
+        cmap = get_cmap('tab20')
+        box_colors = [cmap(i % 20) for i in range(len(names))]
+        plt.grid()
+        bp = plt.boxplot(all_profs, patch_artist=True)
+        for i in range(len(names)):
+            bp['boxes'][i].set_facecolor(box_colors[i])
+        plt.xlabel('Strategy')
+        plt.xticks(list(range(1, len(names) + 1)), names, rotation=90)
+        plt.ylabel('Profit Amount')
+        plt.title(f'Profit Amounts (Across Every Test Condition)')
+        plt.savefig(f'../experiments/plots/report/profit_amounts', bbox_inches='tight')
         plt.clf()
 
         profits_averages, profits_ses, names = [], [], []
