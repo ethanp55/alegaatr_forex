@@ -39,10 +39,10 @@ def test_strategies() -> None:
             for year in YEARS[2:]:
                 for _ in range(N_BANDIT_RUNS):
                     # List of all of the regular strategies
-                    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
-                    #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                    #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
-                    strategies = [AlegAATr()]
+                    strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
+                                  MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
+                                  Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
+                    # strategies = [AlegAATr()]
 
                     pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                     pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'

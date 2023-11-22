@@ -125,10 +125,10 @@ def run_tests() -> None:
     # _test_trade_amounts()
 
     # Extract the overall profitable ratios for each strategy
-    # _extract_profitable_ratios()
+    _extract_profitable_ratios()
 
     # Run multi-comparison test on final profit amounts
-    # _test_profits()
+    _test_profits()
 
     # Run multi-comparison test on final profit amounts
     _test_bandit_profits()
