@@ -28,8 +28,7 @@ from typing import Optional
 class AlegAATr(Strategy):
     def __init__(self, starting_idx: int = 2, percent_to_risk: float = 0.02, min_num_predictions: int = 0,
                  use_single_selection: bool = True, invert: bool = False, min_neighbors: int = 1,
-                 max_neighbors: int = 100000, genetic: bool = False, lmbda: float = 0.95,
-                 optimistic_start: bool = False) -> None:
+                 max_neighbors: int = 100000, genetic: bool = False) -> None:
         super().__init__(starting_idx, percent_to_risk, 'AlegAATr')
         self.generators = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                            MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
@@ -42,14 +41,7 @@ class AlegAATr(Strategy):
         self.prev_prediction = None
         self.predictions_when_wrong, self.trade_values_when_wrong = [], []
         self.predictions_when_correct, self.trade_values_when_correct = [], []
-        self.genetic, self.lmbda, self.optimistic_start = genetic, lmbda, optimistic_start
-        self.empirical_rewards, self.time_since_used = {}, {}
-        self.generator_in_use_name = None
-
-        for generator in self.generators:
-            generator_name = generator.name
-            self.empirical_rewards[generator_name] = deque(maxlen=5)
-            self.time_since_used[generator_name] = 0
+        self.genetic = genetic
 
     def print_parameters(self) -> None:
         print(f'min_num_predictions: {self.min_num_predictions}')
@@ -93,9 +85,6 @@ class AlegAATr(Strategy):
             pickle.dump(self.trade_values_when_correct, f)
 
         self._clear_metric_tracking_vars()
-
-    def trade_finished(self, net_profit: float) -> None:
-        self.empirical_rewards[self.generator_in_use_name].append(net_profit)
 
     def load_best_parameters(self, currency_pair: str, time_frame: str, year: int) -> None:
         if not self.genetic:
@@ -314,55 +303,19 @@ class AlegAATr(Strategy):
             generator_name = generator.name
 
             if generator_name in self.models:
-                prob = self.lmbda ** self.time_since_used[generator_name]
-                use_empricial_avg = np.random.choice([1, 0], p=[prob, 1 - prob])
-                empirical_rewards = self.empirical_rewards[generator_name]
-                trade_amount_pred = None
+                knn_model, training_data = self.models[generator.name], self.correction_terms[generator.name]
+                n_neighbors = len(training_data)
 
-                if use_empricial_avg and (len(empirical_rewards) > 0 or self.optimistic_start):
-                    trade_amount_pred = np.array(empirical_rewards).mean() if len(empirical_rewards) > 0 else np.inf
-
-                else:
-                    knn_model, training_data = self.models[generator.name], self.correction_terms[generator.name]
-                    n_neighbors = len(training_data)
-
-                    if self.min_neighbors <= n_neighbors <= self.max_neighbors:
-                        baseline = account_balance * self.percent_to_risk
-                        correction_pred = knn_model.predict(x)[0]
-
-                        trade_amount_pred = baseline * correction_pred
-                        # neighbor_distances, neighbor_indices = knn_model.kneighbors(x)
-                        # corrections, distances = [], []
-                        # baseline = account_balance * self.percent_to_risk
-                        # for i in range(len(neighbor_indices[0])):
-                        #     neighbor_idx = neighbor_indices[0][i]
-                        #     neighbor_dist = neighbor_distances[0][i]
-                        #     corrections.append(training_data[neighbor_idx,])
-                        #     distances.append(neighbor_dist)
-                        #
-                        # trade_amount_pred, inverse_distance_sum = 0, 0
-                        #
-                        # for dist in distances:
-                        #     inverse_distance_sum += (1 / dist) if dist != 0 else (1 / 0.000001)
-                        #
-                        # for i in range(len(corrections)):
-                        #     distance_i, cor = distances[i], corrections[i]
-                        #     inverse_distance_i = (1 / distance_i) if distance_i != 0 else (1 / 0.000001)
-                        #     distance_weight = inverse_distance_i / inverse_distance_sum
-                        #
-                        #     trade_amount_pred += (baseline * cor * distance_weight)
-
-                if trade_amount_pred is not None:
+                if self.min_neighbors <= n_neighbors <= self.max_neighbors:
+                    baseline = account_balance * self.percent_to_risk
+                    correction_pred = knn_model.predict(x)[0]
+                    trade_amount_pred = baseline * correction_pred
                     n_profitable_predictions += 1 if trade_amount_pred > 0 else 0
 
                     if trade_amount_pred > best_trade_amount:
-                        best_trade_amount, self.generator_in_use_name, best_generator_idx = \
-                            trade_amount_pred, generator_name, j
+                        best_trade_amount, best_generator_idx = trade_amount_pred, j
                         self.use_tsl, self.close_trade_incrementally = \
                             generator.use_tsl, generator.close_trade_incrementally
-
-        for generator in self.generators:
-            self.time_since_used[generator.name] += 1
 
         if n_profitable_predictions >= self.min_num_predictions:
             self.prev_prediction = best_trade_amount
@@ -370,7 +323,6 @@ class AlegAATr(Strategy):
                                                                     account_balance)
 
             if trade is not None:
-                self.time_since_used[self.generator_in_use_name] = 0
                 curr_ao, curr_bo = strategy_data.loc[strategy_data.index[curr_idx], ['Ask_Open', 'Bid_Open']]
 
                 return self._invert(trade, curr_ao, curr_bo)
