@@ -12,6 +12,7 @@ from strategies.exp3 import EXP3
 from strategies.keltner_channels import KeltnerChannels
 from strategies.knn import KNNStrategy
 from strategies.lstm import LstmStrategy
+from strategies.lstm_mixture import LstmMixtureStrategy
 from strategies.ma_crossover import MACrossover
 from strategies.macd import MACD
 from strategies.macd_key_level import MACDKeyLevel
@@ -52,12 +53,15 @@ def test_strategies() -> None:
                     cnn_model_name = f'CNN_{pair_time_frame_year_models_str}'
                     knn_model_name = f'KNN_{pair_time_frame_year_models_str}'
                     lstm_model_name = f'LSTM_{pair_time_frame_year_models_str}'
+                    lstm_mixture_model_name = f'LstmMixture_{pair_time_frame_year_models_str}'
                     mlp_model_name = f'MLP_{pair_time_frame_year_models_str}'
                     rf_model_name = f'RandomForest_{pair_time_frame_year_models_str}'
 
                     # List of ML strategies
-                    # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name), LstmStrategy(lstm_model_name),
-                    #                  MLPStrategy(mlp_model_name), RandomForestStrategy(rf_model_name)]
+                    # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name),
+                    #                  LstmStrategy(lstm_model_name),
+                    #                  LstmMixtureStrategy(lstm_mixture_model_name), MLPStrategy(mlp_model_name),
+                    #                  RandomForestStrategy(rf_model_name)]
                     ml_strategies = []
 
                     # List of all the strategies
