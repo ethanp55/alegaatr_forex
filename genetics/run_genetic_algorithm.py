@@ -12,6 +12,7 @@ from genetics.genetic_algorithm import GeneticAlgorithm
 from genetics.keltner_channels_genome import KeltnerChannelsGenome
 from genetics.knn_genome import KNNGenome
 from genetics.lstm_genome import LstmGenome
+from genetics.lstm_mixture_genome import LstmMixtureGenome
 from genetics.ma_crossover_genome import MACrossoverGenome
 from genetics.macd_genome import MACDGenome
 from genetics.macd_key_level_genome import MACDKeyLevelGenome
@@ -33,8 +34,8 @@ def optimize_genomes() -> None:
     #                 KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
     #                 RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
     #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome, UCBGenome, EXP3Genome,
-    #                 EEEGenome]
-    genome_types = [EnsembleGenome]
+    #                 EEEGenome, LstmMixtureGenome]
+    genome_types = [LstmGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
@@ -43,7 +44,7 @@ def optimize_genomes() -> None:
                 pool = Pool(processes=len(genome_types))
                 pool.map(
                     partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, year=year,
-                            population_size=10, n_iterations=10),
+                            population_size=4, n_iterations=7),
                     genome_types)
 
 

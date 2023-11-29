@@ -1,12 +1,13 @@
 from genetics.genome import GeneticFeature, Genome
-from strategies.mlp import MLPStrategy
+from strategies.lstm_mixture import LstmMixtureStrategy
 from typing import Dict
 
 
-class MLPGenome(Genome):
+class LstmMixtureGenome(Genome):
     def __init__(self, currency_pair: str, time_frame: str, year: int) -> None:
         pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year - 1}'
-        super().__init__(currency_pair, time_frame, year, MLPStrategy(f'MLP_{pair_time_frame_year_str}'))
+        super().__init__(currency_pair, time_frame, year,
+                         LstmMixtureStrategy(f'LstmMixture_{pair_time_frame_year_str}'))
 
     def _initialize_features(self) -> Dict[str, GeneticFeature]:
         ma_key_feature = GeneticFeature([None, 'ema200', 'ema100', 'ema50', 'smma200', 'smma100', 'smma50'])
