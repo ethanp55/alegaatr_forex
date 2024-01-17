@@ -113,7 +113,7 @@ class CNN(Model):
         cnn.add(Dense(8, activation='relu'))
         cnn.add(Dense(4, activation='relu'))
 
-        n_epochs = 100
+        n_epochs = 50
         batch_size = 32
         optimizer = Adam()
         cnn_file_path = f'../models/model_files/{self.name}_cnn'

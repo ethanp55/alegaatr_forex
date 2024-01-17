@@ -31,6 +31,7 @@ def train_models() -> None:
                           RandomForest(f'RandomForest_{pair_time_frame_year_str}'),
                           KNN(f'KNN_{pair_time_frame_year_str}'),
                           MLP(f'MLP_{pair_time_frame_year_str}')]
+                # models = [MLP(f'MLP_{pair_time_frame_year_str}')]
 
                 # Train each model
                 for model in models:

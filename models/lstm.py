@@ -95,7 +95,7 @@ class Lstm(Model):
 
         lstm.add(Dense(4, activation='relu'))
 
-        n_epochs = 100
+        n_epochs = 50
         batch_size = 32
         optimizer = Adam()
         lstm_file_path = f'../models/model_files/{self.name}_lstm'

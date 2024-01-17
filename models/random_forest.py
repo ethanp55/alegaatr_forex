@@ -75,7 +75,7 @@ class RandomForest(Model):
                     for min_samples_split in [2, 3, 4, 5, 10, 15]:
                         all_combos.append((n_estimators, min_samples_leaf, max_depth, min_samples_split))
 
-        percentage_to_try = 0.1
+        percentage_to_try = 0.05
         n_runs = int(percentage_to_try * len(all_combos))
         combos_to_try = random.sample(all_combos, n_runs)  # Perform a random search of the best hyperparameters
         best_validation_mse = np.inf
