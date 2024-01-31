@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from genetics.genome import Genome, Population
 import random
 from typing import List, Tuple
@@ -87,7 +87,7 @@ class GeneticAlgorithm(object):
             weights = [1 / len(performances) for _ in performances]
 
         random_selection = random.choices(population.genomes, weights=weights, k=2)
-        return [deepcopy(genome) for genome in random_selection]
+        return [copy(genome) for genome in random_selection]
 
     # Performs a single point crossover, where 2 genomes swap part of their features
     @staticmethod

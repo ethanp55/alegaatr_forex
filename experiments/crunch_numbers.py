@@ -1,8 +1,8 @@
 import os
-from matplotlib.cm import get_cmap
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pickle
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
@@ -81,9 +81,10 @@ def crunch_numbers() -> None:
         for strategy, profit in profit_with_names:
             print(f'{strategy}\'s total profit: {profit}')
 
+        names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
+
         names, sums = [tup[0] for tup in profit_with_names], [tup[1] for tup in profit_with_names]
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, sums, color=bar_colors)
         plt.xlabel('Strategy')
@@ -136,8 +137,7 @@ def crunch_numbers() -> None:
             names.append(strategy)
 
         avgs = [arry.mean() for arry in all_profs]
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, avgs, color=bar_colors)
         plt.xlabel('Strategy')
@@ -148,8 +148,7 @@ def crunch_numbers() -> None:
         plt.clf()
 
         standard_errors = [arry.std() / len(arry) ** 0.5 for arry in all_profs]
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, avgs, yerr=standard_errors, color=bar_colors)
         plt.xlabel('Strategy')
@@ -159,8 +158,7 @@ def crunch_numbers() -> None:
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_se', bbox_inches='tight')
         plt.clf()
 
-        cmap = get_cmap('tab20')
-        box_colors = [cmap(i % 20) for i in range(len(names))]
+        box_colors = [names_to_colors[name] for name in names]
         plt.grid()
         bp = plt.boxplot(all_profs, patch_artist=True)
         for i in range(len(names)):
@@ -182,8 +180,7 @@ def crunch_numbers() -> None:
             profits_ses.append(sd / len(profits_array) ** 0.5)
             names.append(strategy)
 
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, profits_averages, color=bar_colors)
         plt.xlabel('Strategy')
@@ -193,8 +190,7 @@ def crunch_numbers() -> None:
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_recent_two', bbox_inches='tight')
         plt.clf()
 
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, profits_averages, yerr=profits_ses, color=bar_colors)
         plt.xlabel('Strategy')

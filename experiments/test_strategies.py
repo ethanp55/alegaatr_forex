@@ -40,10 +40,10 @@ def test_strategies() -> None:
             for year in YEARS[2:]:
                 for _ in range(N_BANDIT_RUNS):
                     # List of all of the regular strategies
-                    strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
-                                  MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                                  Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
-                    # strategies = [AlegAATr()]
+                    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
+                    #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
+                    #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
+                    strategies = []
 
                     pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                     pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
@@ -59,11 +59,11 @@ def test_strategies() -> None:
                     rf_model_name = f'RandomForest_{pair_time_frame_year_models_str}'
 
                     # List of ML strategies
-                    # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name),
-                    #                  LstmStrategy(lstm_model_name),
-                    #                  LstmMixtureStrategy(lstm_mixture_model_name), MLPStrategy(mlp_model_name),
-                    #                  RandomForestStrategy(rf_model_name)]
-                    ml_strategies = []
+                    ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name),
+                                     LstmStrategy(lstm_model_name),
+                                     LstmMixtureStrategy(lstm_mixture_model_name), MLPStrategy(mlp_model_name),
+                                     RandomForestStrategy(rf_model_name)]
+                    # ml_strategies = []
 
                     # List of all the strategies
                     all_strategies = strategies + ml_strategies

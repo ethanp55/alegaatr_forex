@@ -1,4 +1,3 @@
-from matplotlib.cm import get_cmap
 import matplotlib.pyplot as plt
 import os
 import numpy as np
@@ -84,8 +83,8 @@ def create_plots() -> None:
                         final_balances.append(final_balance)
 
                     # Bar graph containing final balances for each strategy
-                    cmap = get_cmap('tab20')
-                    bar_colors = [cmap(i % 20) for i in range(len(strategy_names))]
+                    names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
+                    bar_colors = [names_to_colors[name] for name in strategy_names]
                     plt.grid()
                     plt.bar(strategy_names, final_balances, color=bar_colors)
                     plt.xlabel('Strategy')
