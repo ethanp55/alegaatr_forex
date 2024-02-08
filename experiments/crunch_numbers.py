@@ -66,6 +66,7 @@ def crunch_numbers() -> None:
 
         # Print the profit sums
         for time_frame in TIME_FRAMES:
+            total_sum = 0
             sum_to_print = m30_with_names if time_frame == 'M30' else (
                 h1_with_names if time_frame == 'H1' else h4_with_names)
 
@@ -73,13 +74,18 @@ def crunch_numbers() -> None:
 
             for strategy, profit in sum_to_print:
                 print(f'{strategy}\'s total profit: {profit}')
+                total_sum += profit
 
-            print()
+            print(f'AVERAGE PROFIT SUM: {total_sum / len(sum_to_print)}\n')
 
+        total_sum = 0
         print('PROFIT SUM ACROSS EVERY CATEGORY')
 
         for strategy, profit in profit_with_names:
             print(f'{strategy}\'s total profit: {profit}')
+            total_sum += profit
+
+        print(f'AVERAGE PROFIT SUM: {total_sum / len(profit_with_names)}\n')
 
         names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
 
@@ -93,8 +99,6 @@ def crunch_numbers() -> None:
         plt.title(f'Total Profit Sum (Across Every Test Condition)')
         plt.savefig(f'../experiments/plots/report/profit_sums', bbox_inches='tight')
         plt.clf()
-
-        print()
 
         # Print the profit results for each currency and time frame pair
         for pair_time_frame in results_by_pair_time_frame.keys():
