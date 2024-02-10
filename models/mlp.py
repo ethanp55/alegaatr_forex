@@ -72,7 +72,7 @@ class MLP(Model):
         for hidden_layer_sizes in [(10), (25), (50), (100), (25, 50), (50, 100), (25, 25), (50, 50), (100, 100),
                                    (25, 50, 25), (100, 150, 100)]:
             for activation in ['tanh', 'relu', 'logistic']:
-                for solver in ['sgd', 'adam']:
+                for solver in ['adam']:
                     all_combos.append((hidden_layer_sizes, activation, solver))
 
         percentage_to_try = 0.25

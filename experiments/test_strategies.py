@@ -40,29 +40,29 @@ def test_strategies() -> None:
             for year in YEARS:
                 for _ in range(N_BANDIT_RUNS):
                     # List of all of the regular strategies
-                    strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
-                                  MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                                  Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
+                    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
+                    #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
+                    #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
+                    strategies = []
 
                     pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
-                    pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
+                    pair_time_frame_models_str = f'{currency_pair}_{time_frame}'
 
                     print(pair_time_frame_year_str)
 
                     # Model names for the ML strategies (they need to load in pair-time-specific data)
-                    cnn_model_name = f'CNN_{pair_time_frame_year_models_str}'
-                    knn_model_name = f'KNN_{pair_time_frame_year_models_str}'
-                    lstm_model_name = f'LSTM_{pair_time_frame_year_models_str}'
-                    lstm_mixture_model_name = f'LstmMixture_{pair_time_frame_year_models_str}'
-                    mlp_model_name = f'MLP_{pair_time_frame_year_models_str}'
-                    rf_model_name = f'RandomForest_{pair_time_frame_year_models_str}'
+                    cnn_model_name = f'CNN_{pair_time_frame_models_str}'
+                    knn_model_name = f'KNN_{pair_time_frame_models_str}'
+                    lstm_model_name = f'LSTM_{pair_time_frame_models_str}'
+                    lstm_mixture_model_name = f'LstmMixture_{pair_time_frame_models_str}'
+                    mlp_model_name = f'MLP_{pair_time_frame_models_str}'
+                    rf_model_name = f'RandomForest_{pair_time_frame_models_str}'
 
                     # List of ML strategies
-                    # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name),
-                    #                  LstmStrategy(lstm_model_name),
-                    #                  LstmMixtureStrategy(lstm_mixture_model_name), MLPStrategy(mlp_model_name),
-                    #                  RandomForestStrategy(rf_model_name)]
-                    ml_strategies = []
+                    ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name),
+                                     LstmStrategy(lstm_model_name),
+                                     LstmMixtureStrategy(lstm_mixture_model_name), MLPStrategy(mlp_model_name),
+                                     RandomForestStrategy(rf_model_name)]
 
                     # List of all the strategies
                     all_strategies = strategies + ml_strategies

@@ -91,7 +91,7 @@ class LstmMixtureNetwork(TfModel):
 
 
 class LstmMixture(Model):
-    def __init__(self, name: str, lstm_training_set_percentage=0.8, lookback=100) -> None:
+    def __init__(self, name: str, lstm_training_set_percentage=0.8, lookback=50) -> None:
         super().__init__(name)
         self.lstm_training_set_percentage = lstm_training_set_percentage
         self.lookback = lookback
@@ -202,7 +202,7 @@ class LstmMixture(Model):
                 best_val_mse = val_mse
 
                 # Save the network
-                save_model(lstm_mixture, f'/./models/model_files/{self.name}_mixture')
+                save_model(lstm_mixture, f'../models/model_files/{self.name}_mixture')
 
             else:
                 # Increment the number of epochs that have passed without any improvement/change

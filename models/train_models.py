@@ -24,12 +24,13 @@ def train_models() -> None:
             df_train = DataLoader.load_training_data(currency_pair, time_frame, pips_multiplier)
 
             # Models we want to train
-            models = [Lstm(f'LSTM_{pair_time_frame_str}'),
-                      LstmMixture(f'LstmMixture_{pair_time_frame_str}'),
-                      CNN(f'CNN_{pair_time_frame_str}'),
-                      RandomForest(f'RandomForest_{pair_time_frame_str}'),
-                      KNN(f'KNN_{pair_time_frame_str}'),
-                      MLP(f'MLP_{pair_time_frame_str}')]
+            # models = [Lstm(f'LSTM_{pair_time_frame_str}'),
+            #           LstmMixture(f'LstmMixture_{pair_time_frame_str}'),
+            #           CNN(f'CNN_{pair_time_frame_str}'),
+            #           RandomForest(f'RandomForest_{pair_time_frame_str}'),
+            #           KNN(f'KNN_{pair_time_frame_str}'),
+            #           MLP(f'MLP_{pair_time_frame_str}')]
+            models = [CNN(f'CNN_{pair_time_frame_str}')]
 
             # Train each model
             for model in models:

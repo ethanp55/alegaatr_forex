@@ -13,7 +13,7 @@ from utils.technical_indicators import TechnicalIndicators
 
 
 class CNN(Model):
-    def __init__(self, name: str, training_set_percentage=0.8, lookback=100) -> None:
+    def __init__(self, name: str, training_set_percentage=0.8, lookback=40) -> None:
         super().__init__(name)
         self.training_set_percentage = training_set_percentage
         self.lookback = lookback
