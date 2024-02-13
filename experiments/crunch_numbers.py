@@ -86,8 +86,8 @@ def crunch_numbers() -> None:
         plt.bar(names, sums, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
-        plt.ylabel('Profit Sum')
-        plt.title(f'Total Profit Sum (Across Every Test Condition)')
+        plt.ylabel('Sum')
+        plt.title(f'Total Profit Sum (Phase 1)')
         plt.savefig(f'../experiments/plots/report/profit_sums', bbox_inches='tight')
         plt.clf()
 
@@ -139,8 +139,8 @@ def crunch_numbers() -> None:
         plt.bar(names, avgs, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
-        plt.ylabel('Average Profit Amount')
-        plt.title(f'Average Profit Amounts (Across Every Test Condition)')
+        plt.ylabel('Amount')
+        plt.title(f'Average Profit Amounts (Phase 1)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts', bbox_inches='tight')
         plt.clf()
 
@@ -150,8 +150,8 @@ def crunch_numbers() -> None:
         plt.bar(names, avgs, yerr=standard_errors, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
-        plt.ylabel('Average Profit Amount')
-        plt.title(f'Average Profit Amounts (Across Every Test Condition) With Standard Errors')
+        plt.ylabel('Amount')
+        plt.title(f'Average Profit Amounts (Phase 1)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_se', bbox_inches='tight')
         plt.clf()
 
@@ -162,8 +162,8 @@ def crunch_numbers() -> None:
             bp['boxes'][i].set_facecolor(box_colors[i])
         plt.xlabel('Strategy')
         plt.xticks(list(range(1, len(names) + 1)), names, rotation=90)
-        plt.ylabel('Profit Amount')
-        plt.title(f'Profit Amounts (Across Every Test Condition)')
+        plt.ylabel('Amount')
+        plt.title(f'Profit Amounts (Phase 1)')
         plt.savefig(f'../experiments/plots/report/profit_amounts', bbox_inches='tight')
         plt.clf()
 

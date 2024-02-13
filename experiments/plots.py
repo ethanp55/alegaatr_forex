@@ -73,20 +73,25 @@ def create_plots() -> None:
                     filtered_file_list = [file_name for file_name in file_list if
                                           (pair_time_year_str in file_name and 'final_balances' in file_name)]
 
-                    final_balances, strategy_names, max_len = [], [], 0
+                    final_balances_with_names, max_len = [], 0
 
                     for file_name in filtered_file_list:
                         strategy_name = file_name.split('_')[0]
                         final_balance = pickle.load(open(f'../experiments/results/{file_name}', 'rb'))
 
-                        strategy_names.append(strategy_name)
-                        final_balances.append(final_balance)
+                        final_balances_with_names.append((strategy_name, final_balance))
+
+                    # Sort by best performance
+                    final_balances_with_names.sort(key=lambda x: x[1], reverse=True)
+                    strategy_names = [tup[0] for tup in final_balances_with_names]
+                    final_balances = [tup[1] for tup in final_balances_with_names]
 
                     # Bar graph containing final balances for each strategy
                     names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
                     bar_colors = [names_to_colors[name] for name in strategy_names]
                     plt.grid()
                     plt.bar(strategy_names, final_balances, color=bar_colors)
+                    plt.axhline(y=10000, color='black', linestyle='--')
                     plt.xlabel('Strategy')
                     plt.xticks(rotation=90)
                     plt.ylabel('Final Account Balance')
