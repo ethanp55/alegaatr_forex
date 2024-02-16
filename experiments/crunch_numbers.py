@@ -64,28 +64,41 @@ def crunch_numbers() -> None:
         h1_with_names.sort(key=lambda x: x[1], reverse=True)
         h4_with_names.sort(key=lambda x: x[1], reverse=True)
 
-        # Print the profit sums
+        # Print the profit averages and print latex table (for the paper)
+        total_avg = 0
+        latex_data, latex_headers = {}, ['Strategy', 'Overall']
+        print('PROFIT AVERAGES ACROSS EVERY CATEGORY')
+
+        for strategy, profit in profit_with_names:
+            avg = profit / 10
+            print(f'{strategy}\'s average profit: {avg}')
+            total_avg += avg
+            latex_data[strategy] = [avg]
+
+        print(f'AVERAGE PROFIT AVG: {total_avg / len(profit_with_names)}\n')
+
         for time_frame in TIME_FRAMES:
-            total_sum = 0
+            latex_headers.append(time_frame)
+            total_avg, curr_row = 0, []
             sum_to_print = m30_with_names if time_frame == 'M30' else (
                 h1_with_names if time_frame == 'H1' else h4_with_names)
 
-            print(f'PROFIT SUMS FOR {time_frame}:')
+            print(f'PROFIT AVERAGES FOR {time_frame}:')
 
             for strategy, profit in sum_to_print:
-                print(f'{strategy}\'s total profit: {profit}')
-                total_sum += profit
+                avg = profit / 10
+                print(f'{strategy}\'s average profit: {avg}')
+                total_avg += avg
+                latex_data[strategy] += [avg]
 
-            print(f'AVERAGE PROFIT SUM: {total_sum / len(sum_to_print)}\n')
+            print(f'AVERAGE PROFIT AVG: {total_avg / len(sum_to_print)}\n')
 
-        total_sum = 0
-        print('PROFIT SUM ACROSS EVERY CATEGORY')
+        latex_df = pd.DataFrame(latex_data).T.reset_index()
+        latex_df.columns = latex_headers
+        latex_headers.append(latex_headers.pop(1))
+        latex_df = latex_df[latex_headers]
 
-        for strategy, profit in profit_with_names:
-            print(f'{strategy}\'s total profit: {profit}')
-            total_sum += profit
-
-        print(f'AVERAGE PROFIT SUM: {total_sum / len(profit_with_names)}\n')
+        print(latex_df.round(3).to_latex(index=False))
 
         names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
 
