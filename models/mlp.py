@@ -72,10 +72,10 @@ class MLP(Model):
         for hidden_layer_sizes in [(10), (25), (50), (100), (25, 50), (50, 100), (25, 25), (50, 50), (100, 100),
                                    (25, 50, 25), (100, 150, 100)]:
             for activation in ['tanh', 'relu', 'logistic']:
-                for solver in ['sgd', 'adam']:
+                for solver in ['adam']:
                     all_combos.append((hidden_layer_sizes, activation, solver))
 
-        percentage_to_try = 0.25
+        percentage_to_try = 0.5
         n_runs = int(percentage_to_try * len(all_combos))
         combos_to_try = random.sample(all_combos, n_runs)  # Perform a random search of the best hyperparameters
         best_validation_mse = np.inf

@@ -31,8 +31,6 @@ class LstmMixtureLayer(Layer):
         self.batch_norm3 = BatchNormalization()
 
         self.dense1 = Dense(128, activation=activation_function)
-        self.dropout4 = Dropout(0.2)
-
         self.dense2 = Dense(4, activation=activation_function)
 
     def call(self, input_tensor: tf.Tensor) -> tf.Tensor:
@@ -157,7 +155,7 @@ class LstmMixture(Model):
         val_metric = MeanSquaredErrorMetric()
         best_val_mse = np.inf
         n_epochs_without_change = 0
-        n_epochs = 100
+        n_epochs = 50
         n_epochs_for_cancel = int(n_epochs * 0.1)
         batch_size = 32
 
@@ -202,7 +200,7 @@ class LstmMixture(Model):
                 best_val_mse = val_mse
 
                 # Save the network
-                save_model(lstm_mixture, f'/./models/model_files/{self.name}_mixture')
+                save_model(lstm_mixture, f'../models/model_files/{self.name}_mixture')
 
             else:
                 # Increment the number of epochs that have passed without any improvement/change

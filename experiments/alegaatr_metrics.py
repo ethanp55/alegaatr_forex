@@ -30,7 +30,7 @@ def process_alegaatr_metrics() -> None:
         plt.xlabel('USD Amounts')
         plt.ylabel('Counts')
         plt.legend(loc='best')
-        plt.title(f'Distributions of Incorrect Predictions and Trade Amounts')
+        plt.title(f'Distributions of Incorrect Predictions and Trade Amounts (Phase 2)')
         plt.savefig(f'../experiments/plots/report/incorrect', bbox_inches='tight')
         plt.clf()
 
@@ -42,7 +42,7 @@ def process_alegaatr_metrics() -> None:
         plt.xlabel('USD Amounts')
         plt.ylabel('Counts')
         plt.legend(loc='best')
-        plt.title(f'Distributions of Correct Predictions and Trade Amounts')
+        plt.title(f'Distributions of Correct Predictions and Trade Amounts (Phase 2)')
         plt.savefig(f'../experiments/plots/report/correct', bbox_inches='tight')
         plt.clf()
 
@@ -52,7 +52,7 @@ def process_alegaatr_metrics() -> None:
         plt.xlabel('USD Amounts')
         plt.ylabel('Counts')
         plt.legend(loc='best')
-        plt.title(f'Distributions of Correct and Incorrect Predictions')
+        plt.title(f'Distributions of Correct and Incorrect Predictions (Phase 2)')
         plt.savefig(f'../experiments/plots/report/correct_incorrect', bbox_inches='tight')
         plt.clf()
 

@@ -1,5 +1,4 @@
 from aat.assumptions import Assumptions
-from collections import deque
 from copy import deepcopy
 from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
@@ -46,8 +45,6 @@ class AlegAATr(Strategy):
     def print_parameters(self) -> None:
         print(f'min_num_predictions: {self.min_num_predictions}')
         print(f'use_single_selection: {self.use_single_selection}')
-        print(f'lmbda: {self.lmbda}')
-        print(f'optimistic_start: {self.optimistic_start}')
 
     def _clear_metric_tracking_vars(self) -> None:
         self.prev_prediction = None
@@ -106,10 +103,6 @@ class AlegAATr(Strategy):
 
             except:
                 continue
-
-        self.lmbda = 1.0
-        if self.lmbda == 1.0:
-            self.optimistic_start = True
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:

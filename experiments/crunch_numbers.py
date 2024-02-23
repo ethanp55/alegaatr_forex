@@ -1,8 +1,8 @@
 import os
-from matplotlib.cm import get_cmap
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pickle
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
@@ -64,36 +64,54 @@ def crunch_numbers() -> None:
         h1_with_names.sort(key=lambda x: x[1], reverse=True)
         h4_with_names.sort(key=lambda x: x[1], reverse=True)
 
-        # Print the profit sums
+        # Print the profit averages and print latex table (for the paper)
+        total_avg = 0
+        latex_data, latex_headers = {}, ['Strategy', 'Overall']
+        print('PROFIT AVERAGES ACROSS EVERY CATEGORY')
+
+        for strategy, profit in profit_with_names:
+            avg = profit / 10
+            print(f'{strategy}\'s average profit: {avg}')
+            total_avg += avg
+            latex_data[strategy] = [avg]
+
+        print(f'AVERAGE PROFIT AVG: {total_avg / len(profit_with_names)}\n')
+
         for time_frame in TIME_FRAMES:
+            latex_headers.append(time_frame)
+            total_avg, curr_row = 0, []
             sum_to_print = m30_with_names if time_frame == 'M30' else (
                 h1_with_names if time_frame == 'H1' else h4_with_names)
 
-            print(f'PROFIT SUMS FOR {time_frame}:')
+            print(f'PROFIT AVERAGES FOR {time_frame}:')
 
             for strategy, profit in sum_to_print:
-                print(f'{strategy}\'s total profit: {profit}')
+                avg = profit / 10
+                print(f'{strategy}\'s average profit: {avg}')
+                total_avg += avg
+                latex_data[strategy] += [avg]
 
-            print()
+            print(f'AVERAGE PROFIT AVG: {total_avg / len(sum_to_print)}\n')
 
-        print('PROFIT SUM ACROSS EVERY CATEGORY')
+        latex_df = pd.DataFrame(latex_data).T.reset_index()
+        latex_df.columns = latex_headers
+        latex_headers.append(latex_headers.pop(1))
+        latex_df = latex_df[latex_headers]
 
-        for strategy, profit in profit_with_names:
-            print(f'{strategy}\'s total profit: {profit}')
+        print(latex_df.round(3).to_latex(index=False))
+
+        names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
 
         names, sums = [tup[0] for tup in profit_with_names], [tup[1] for tup in profit_with_names]
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, sums, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
-        plt.ylabel('Profit Sum')
-        plt.title(f'Total Profit Sum (Across Every Test Condition)')
+        plt.ylabel('Sum')
+        plt.title(f'Total Profit Sum')
         plt.savefig(f'../experiments/plots/report/profit_sums', bbox_inches='tight')
         plt.clf()
-
-        print()
 
         # Print the profit results for each currency and time frame pair
         for pair_time_frame in results_by_pair_time_frame.keys():
@@ -136,39 +154,36 @@ def crunch_numbers() -> None:
             names.append(strategy)
 
         avgs = [arry.mean() for arry in all_profs]
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, avgs, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
-        plt.ylabel('Average Profit Amount')
-        plt.title(f'Average Profit Amounts (Across Every Test Condition)')
+        plt.ylabel('Amount')
+        plt.title(f'Average Profit Amounts (Phase 2, No Emp. Mechanism)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts', bbox_inches='tight')
         plt.clf()
 
         standard_errors = [arry.std() / len(arry) ** 0.5 for arry in all_profs]
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, avgs, yerr=standard_errors, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
-        plt.ylabel('Average Profit Amount')
-        plt.title(f'Average Profit Amounts (Across Every Test Condition) With Standard Errors')
+        plt.ylabel('Amount')
+        plt.title(f'Average Profit Amounts (Phase 2, No Emp. Mechanism)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_se', bbox_inches='tight')
         plt.clf()
 
-        cmap = get_cmap('tab20')
-        box_colors = [cmap(i % 20) for i in range(len(names))]
+        box_colors = [names_to_colors[name] for name in names]
         plt.grid()
         bp = plt.boxplot(all_profs, patch_artist=True)
         for i in range(len(names)):
             bp['boxes'][i].set_facecolor(box_colors[i])
         plt.xlabel('Strategy')
         plt.xticks(list(range(1, len(names) + 1)), names, rotation=90)
-        plt.ylabel('Profit Amount')
-        plt.title(f'Profit Amounts (Across Every Test Condition)')
+        plt.ylabel('Amount')
+        plt.title(f'Profit Amounts (Phase 2, No Emp. Mechanism)')
         plt.savefig(f'../experiments/plots/report/profit_amounts', bbox_inches='tight')
         plt.clf()
 
@@ -182,25 +197,23 @@ def crunch_numbers() -> None:
             profits_ses.append(sd / len(profits_array) ** 0.5)
             names.append(strategy)
 
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, profits_averages, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
-        plt.ylabel('Average Profit Amount')
-        plt.title(f'Average Profit Amounts (2021-2023)')
+        plt.ylabel('Amount')
+        plt.title(f'Average Profit Amounts (Phase 2, No Emp. Mechanism)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_recent_two', bbox_inches='tight')
         plt.clf()
 
-        cmap = get_cmap('tab20')
-        bar_colors = [cmap(i % 20) for i in range(len(names))]
+        bar_colors = [names_to_colors[name] for name in names]
         plt.grid()
         plt.bar(names, profits_averages, yerr=profits_ses, color=bar_colors)
         plt.xlabel('Strategy')
         plt.xticks(rotation=90)
-        plt.ylabel('Average Profit Amount')
-        plt.title(f'Average Profit Amounts (2021-2023) With Standard Errors')
+        plt.ylabel('Amount')
+        plt.title(f'Average Profit Amounts (Phase 2, No Emp. Mechanism)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_se_recent_two', bbox_inches='tight')
         plt.clf()
 
