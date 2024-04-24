@@ -2,6 +2,7 @@ from market_proxy.market_simulation_results import MarketSimulationResults
 from market_proxy.trade import Trade
 import numpy as np
 from pandas import DataFrame
+import pickle
 from strategies.bar_movement import BarMovement
 from strategies.beep_boop import BeepBoop
 from strategies.bollinger_bands import BollingerBands
@@ -38,6 +39,35 @@ class UCB(Strategy):
 
         self.delta, self.genetic = delta, genetic
         self.expert_name = None
+        self.prev_pred = None
+        self.predictions_when_wrong, self.predictions_when_correct = [], []
+
+    def _clear_metric_tracking_vars(self) -> None:
+        self.prev_pred = None
+        self.predictions_when_wrong.clear()
+        self.predictions_when_correct.clear()
+
+    def save_metric_tracking_vars(self, currency_pair: str, time_frame: str, year: int) -> None:
+        file_path = f'../experiments/results/ucb_metrics/{currency_pair}_{time_frame}_{year}'
+
+        with open(f'{file_path}_predictions_when_wrong.pickle', 'wb') as f:
+            pickle.dump(self.predictions_when_wrong, f)
+
+        with open(f'{file_path}_predictions_when_correct.pickle', 'wb') as f:
+            pickle.dump(self.predictions_when_correct, f)
+
+        self._clear_metric_tracking_vars()
+
+    def update_metric_tracking_vars(self, trade_value: float) -> None:
+        # Win
+        if trade_value > 0:
+            self.predictions_when_correct.append(self.prev_pred)
+
+        # Loss
+        else:
+            self.predictions_when_wrong.append(self.prev_pred)
+
+        self.prev_pred = None
 
     def load_best_parameters(self, currency_pair: str, time_frame: str, year: int) -> None:
         if not self.genetic:
@@ -81,6 +111,7 @@ class UCB(Strategy):
         trade = expert_strategy.place_trade(curr_idx, strategy_data, currency_pair, account_balance)
 
         if trade is not None:
+            self.prev_pred = max(predictions.values())
             self.n_samples[self.expert_name] += 1
             self.use_tsl, self.close_trade_incrementally = \
                 expert_strategy.use_tsl, expert_strategy.close_trade_incrementally

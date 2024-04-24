@@ -1,7 +1,6 @@
 from aat.aat_trainer import AATTrainer
 from datetime import datetime
 from experiments.metrics_tracker import MetricsTracker
-import os.path
 from pandas import DataFrame
 from market_proxy.market_calculations import MarketCalculations
 from market_proxy.market_simulation_results import MarketSimulationResults
@@ -62,8 +61,8 @@ class MarketSimulator(object):
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
                                                              profit, simulation_results.account_balance)
 
-                        if strategy.name == 'AlegAATr':
-                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, profit)
+                        if strategy.name in ['AlegAATr', 'LstmMixture', 'UCB']:
+                            metrics_tracker.update_strategy_metric_tracking_vars(strategy, profit)
 
                     return curr_date
 
@@ -85,8 +84,8 @@ class MarketSimulator(object):
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
                                                              profit, simulation_results.account_balance)
 
-                        if strategy.name == 'AlegAATr':
-                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, profit)
+                        if strategy.name in ['AlegAATr', 'LstmMixture', 'UCB']:
+                            metrics_tracker.update_strategy_metric_tracking_vars(strategy, profit)
 
                     return curr_date
 
@@ -107,8 +106,8 @@ class MarketSimulator(object):
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
                                                              profit, simulation_results.account_balance)
 
-                        if strategy.name == 'AlegAATr':
-                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, profit)
+                        if strategy.name in ['AlegAATr', 'LstmMixture', 'UCB']:
+                            metrics_tracker.update_strategy_metric_tracking_vars(strategy, profit)
 
                     return curr_date
 
@@ -130,8 +129,8 @@ class MarketSimulator(object):
                         metrics_tracker.update_trade_amounts(strategy.name, currency_pair, time_frame, year,
                                                              profit, simulation_results.account_balance)
 
-                        if strategy.name == 'AlegAATr':
-                            metrics_tracker.update_alegaatr_metric_tracking_vars(strategy, profit)
+                        if strategy.name in ['AlegAATr', 'LstmMixture', 'UCB']:
+                            metrics_tracker.update_strategy_metric_tracking_vars(strategy, profit)
 
                     return curr_date
 
@@ -206,8 +205,8 @@ class MarketSimulator(object):
             metrics_tracker.update_final_balance(strategy.name, currency_pair, time_frame, year,
                                                  simulation_results.account_balance)
 
-            if strategy.name == 'AlegAATr':
-                metrics_tracker.save_alegaatr_data(strategy, currency_pair, time_frame, year)
+            if strategy.name in ['AlegAATr', 'LstmMixture', 'UCB']:
+                metrics_tracker.save_strategy_data(strategy, currency_pair, time_frame, year)
 
         # Return the simulation results once we've iterated through all the data
         simulation_results.avg_pips_risked = np.array(pips_risked).mean() if len(pips_risked) > 0 else 0

@@ -52,7 +52,7 @@ def process_alegaatr_metrics() -> None:
         plt.xlabel('USD Amounts')
         plt.ylabel('Counts')
         plt.legend(loc='best')
-        plt.title(f'Distributions of Correct and Incorrect Predictions (Phase 2)')
+        plt.title(f'Distributions of Correct and Incorrect Predictions - AlegAATr, Phase 2')
         plt.savefig(f'../experiments/plots/report/correct_incorrect', bbox_inches='tight')
         plt.clf()
 
@@ -195,5 +195,38 @@ def process_alegaatr_metrics() -> None:
     process_worst_and_best_values()
 
 
+def process_ucb_metrics():
+    predictions_when_wrong, predictions_when_correct = [], []
+
+    for currency_pair in CURRENCY_PAIRS:
+        for time_frame in TIME_FRAMES:
+            for year in YEARS[2:]:
+                file_path = f'../experiments/results/ucb_metrics/{currency_pair}_{time_frame}_{year}'
+
+                try:
+                    predictions_when_wrong += pickle.load(open(f'{file_path}_predictions_when_wrong.pickle', 'rb'))
+                    predictions_when_correct += pickle.load(open(f'{file_path}_predictions_when_correct.pickle', 'rb'))
+
+                except:
+                    continue
+
+    predictions_when_wrong_clean = [val for val in predictions_when_wrong if val != np.inf]
+    predictions_when_correct_clean = [val for val in predictions_when_correct if val != np.inf]
+
+    n_bins = int(0.25 * len(predictions_when_correct_clean))
+
+    plt.grid()
+    plt.hist(predictions_when_correct_clean, bins=n_bins, alpha=0.75, label='Correct Predictions', color='green')
+    plt.hist(predictions_when_wrong_clean, bins=n_bins, alpha=0.5, label='Incorrect Predictions', color='red')
+    plt.xlabel('USD Amounts')
+    plt.ylabel('Counts')
+    plt.legend(loc='best')
+    plt.title(f'Distributions of Correct and Incorrect Predictions - UCB, Phase 2')
+    plt.savefig(f'../experiments/plots/report/correct_incorrect_ucb', bbox_inches='tight')
+    plt.clf()
+
+
 if __name__ == "__main__":
-    process_alegaatr_metrics()
+    # process_alegaatr_metrics()
+
+    process_ucb_metrics()

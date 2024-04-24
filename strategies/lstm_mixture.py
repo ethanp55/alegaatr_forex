@@ -12,6 +12,7 @@ from market_proxy.trade import Trade, TradeType
 from models.lstm_mixture import LstmMixture
 import numpy as np
 from pandas import DataFrame
+import pickle
 from strategies.strategy import Strategy
 from typing import Optional
 
@@ -32,6 +33,35 @@ class LstmMixtureStrategy(Strategy):
         self.model.load_model()
         self.ask_pips_up_errors, self.ask_pips_down_errors, self.bid_pips_up_errors, self.bid_pips_down_errors = deque(
             maxlen=10), deque(maxlen=10), deque(maxlen=10), deque(maxlen=10)
+        self.prev_error = None
+        self.errors_when_wrong, self.errors_when_correct = [], []
+
+    def _clear_metric_tracking_vars(self) -> None:
+        self.prev_error = None
+        self.errors_when_wrong.clear()
+        self.errors_when_correct.clear()
+
+    def save_metric_tracking_vars(self, currency_pair: str, time_frame: str, year: int) -> None:
+        file_path = f'../experiments/results/lstm_mixture_metrics/{currency_pair}_{time_frame}_{year}'
+
+        with open(f'{file_path}_errors_when_wrong.pickle', 'wb') as f:
+            pickle.dump(self.errors_when_wrong, f)
+
+        with open(f'{file_path}_errors_when_correct.pickle', 'wb') as f:
+            pickle.dump(self.errors_when_correct, f)
+
+        self._clear_metric_tracking_vars()
+
+    def update_metric_tracking_vars(self, trade_value: float) -> None:
+        # Win
+        if trade_value > 0:
+            self.errors_when_correct.append(self.prev_error)
+
+        # Loss
+        else:
+            self.errors_when_wrong.append(self.prev_error)
+
+        self.prev_error = None
 
     def place_trade(self, curr_idx: int, strategy_data: DataFrame, currency_pair: str, account_balance: float) -> \
             Optional[Trade]:
@@ -117,6 +147,8 @@ class LstmMixtureStrategy(Strategy):
                     stop_gain = None if self.risk_reward_ratio is None else open_price + (
                             sl_pips * self.risk_reward_ratio)
 
+                    self.prev_error = self.bid_pips_up_errors[-1]
+
                     return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
                                  currency_pair)
 
@@ -131,6 +163,8 @@ class LstmMixtureStrategy(Strategy):
                                                              currency_pair, amount_to_risk)
                     stop_gain = None if self.risk_reward_ratio is None else open_price - (
                             sl_pips * self.risk_reward_ratio)
+
+                    self.prev_error = self.ask_pips_down_errors[-1]
 
                     return Trade(trade_type, open_price, stop_loss, stop_gain, n_units, sl_pips, curr_date,
                                  currency_pair)
