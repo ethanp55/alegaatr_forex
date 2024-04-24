@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import pickle
+from scipy import stats
 from statsmodels.stats.multicomp import MultiComparison
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 
@@ -121,17 +122,48 @@ def run_tests() -> None:
 
         print(result.summary())
 
+    def _effect_sizes_alegaatr() -> None:
+        def _cohens_d(group1, group2):
+            mean_diff = np.mean(group1) - np.mean(group2)
+            pooled_std = np.sqrt((np.std(group1, ddof=1) ** 2 + np.std(group2, ddof=1) ** 2) / 2)
+
+            return mean_diff / pooled_std
+
+        profits_by_strategy = {}
+        file_list = os.listdir('../experiments/results/')
+        filtered_file_list = [file_name for file_name in file_list if
+                              ('final_balances' in file_name and 'csv' not in file_name)]
+
+        for file_name in filtered_file_list:
+            strategy_name = file_name.split('_')[0]
+            profit = float(pickle.load(open(f'../experiments/results/{file_name}', 'rb')) - 10000)
+            profits_by_strategy[strategy_name] = profits_by_strategy.get(strategy_name, []) + [
+                profit]
+
+        alegaatr_profits = profits_by_strategy['AlegAATr']
+
+        for name, profits in profits_by_strategy.items():
+            if name == 'AlegAATr':
+                continue
+
+            d = _cohens_d(alegaatr_profits, profits)
+
+            print(f'Cohen\'s d AlegAATr vs. {name}: {d}')
+
     # Extract info about trade amounts and run multi-comparison tests
     # _test_trade_amounts()
 
-    # Extract the overall profitable ratios for each strategy
-    _extract_profitable_ratios()
+    # # Extract the overall profitable ratios for each strategy
+    # _extract_profitable_ratios()
+    #
+    # # Run multi-comparison test on final profit amounts
+    # _test_profits()
+    #
+    # # Run multi-comparison test on final profit amounts
+    # _test_bandit_profits()
 
-    # Run multi-comparison test on final profit amounts
-    _test_profits()
-
-    # Run multi-comparison test on final profit amounts
-    _test_bandit_profits()
+    # Cohen's d effect size for AlegAATr vs. all other strategies
+    _effect_sizes_alegaatr()
 
 
 if __name__ == "__main__":
