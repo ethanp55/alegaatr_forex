@@ -2,7 +2,6 @@ import os
 import numpy as np
 import pandas as pd
 import pickle
-from scipy import stats
 from statsmodels.stats.multicomp import MultiComparison
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 
@@ -141,6 +140,7 @@ def run_tests() -> None:
                 profit]
 
         alegaatr_profits = profits_by_strategy['AlegAATr']
+        latex_df = []
 
         for name, profits in profits_by_strategy.items():
             if name == 'AlegAATr':
@@ -148,7 +148,11 @@ def run_tests() -> None:
 
             d = _cohens_d(alegaatr_profits, profits)
 
-            print(f'Cohen\'s d AlegAATr vs. {name}: {d}')
+            # print(f'Cohen\'s d AlegAATr vs. {name}: {d}')
+            latex_df.append((f'AlegAATr vs. {name}', round(d, 3)))
+
+        latex_df = pd.DataFrame(latex_df, columns=['Comparison', 'Effect Size'])
+        print(latex_df.to_latex(index=False))
 
     # Extract info about trade amounts and run multi-comparison tests
     # _test_trade_amounts()
