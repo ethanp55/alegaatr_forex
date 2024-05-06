@@ -5,7 +5,8 @@ import pickle
 from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
 from tensorflow.keras import Model as TfModel
-from tensorflow.keras.layers import BatchNormalization, Dense, Dropout, Flatten, Layer, LSTM, Multiply, Softmax
+from tensorflow.keras.layers import BatchNormalization, Dense, Dropout, Flatten, Layer, LSTM, Multiply, Softmax, \
+    TFSMLayer
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.metrics import MeanSquaredError as MeanSquaredErrorMetric
 from tensorflow.keras.models import load_model, save_model
@@ -96,13 +97,15 @@ class LstmMixture(Model):
         self.scaler = None
 
     def load_model(self) -> None:
-        self.mixture = load_model(f'../models/model_files/{self.name}_mixture')
+        # self.mixture = load_model(f'../models/model_files/{self.name}_mixture')
+        self.mixture = TFSMLayer(f'../models/model_files/{self.name}_mixture', call_endpoint="serving_default")
         self.scaler = pickle.load(open(f'../models/model_files/{self.name}_scaler.pickle', 'rb'))
 
     def predict(self, x: np.array) -> Tuple[float, float, float, float]:
         x_scaled = self.scaler.transform(x)
+        return self.mixture(x_scaled.reshape(-1, self.lookback, x_scaled.shape[-1]))['output_1'][0].numpy()
 
-        return self.mixture.predict(x_scaled.reshape(-1, self.lookback, x_scaled.shape[-1]))[0]
+        # return self.mixture.predict(x_scaled.reshape(-1, self.lookback, x_scaled.shape[-1]))[0]
 
     def train(self, df: pd.DataFrame) -> None:
         # Create formatted training data for the LSTM and separate it into training and validation sets
