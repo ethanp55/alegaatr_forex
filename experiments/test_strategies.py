@@ -12,7 +12,7 @@ from runner.simulation_runner import SimulationRunner
 # from strategies.keltner_channels import KeltnerChannels
 # from strategies.knn import KNNStrategy
 # from strategies.lstm import LstmStrategy
-from strategies.lstm_mixture import LstmMixtureStrategy
+# from strategies.lstm_mixture import LstmMixtureStrategy
 # from strategies.ma_crossover import MACrossover
 # from strategies.macd import MACD
 # from strategies.macd_key_level import MACDKeyLevel
@@ -25,6 +25,7 @@ from strategies.lstm_mixture import LstmMixtureStrategy
 # from strategies.stochastic import Stochastic
 # from strategies.supertrend import Supertrend
 # from strategies.ucb import UCB
+from strategies.random import Random
 from utils.utils import CURRENCY_PAIRS, N_BANDIT_RUNS, TIME_FRAMES, YEARS
 
 
@@ -43,7 +44,7 @@ def test_strategies() -> None:
                     # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
                     #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
                     #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
-                    strategies = []
+                    strategies = [Random()]
 
                     pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                     pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
@@ -63,7 +64,7 @@ def test_strategies() -> None:
                     #                  LstmStrategy(lstm_model_name),
                     #                  LstmMixtureStrategy(lstm_mixture_model_name), MLPStrategy(mlp_model_name),
                     #                  RandomForestStrategy(rf_model_name)]
-                    ml_strategies = [LstmMixtureStrategy(lstm_mixture_model_name)]
+                    ml_strategies = []
 
                     # List of all the strategies
                     all_strategies = strategies + ml_strategies
@@ -75,6 +76,7 @@ def test_strategies() -> None:
                                                                  False,
                                                                  metrics_tracker)
                         print(result.net_reward)
+                        print(result.total_fees)
 
                         # Update the final results
                         test_results.append((f'{strategy.name}_{pair_time_frame_year_str}', result))
@@ -92,14 +94,22 @@ def test_strategies() -> None:
     print('FINAL TEST RESULTS (ordered from most profitable to least)')
     print('----------------------------------------------------------')
 
+    rewards, fees = 0, 0
+
     for name, res in test_results:
         print(name)
         print(res)
         print()
 
+        rewards += res.net_reward
+        fees += res.total_fees
+
     print('----------------------------------------------------------')
     print('----------------------------------------------------------')
     print('----------------------------------------------------------')
+
+    print(rewards / len(test_results))
+    print(fees / len(test_results))
 
 
 if __name__ == "__main__":

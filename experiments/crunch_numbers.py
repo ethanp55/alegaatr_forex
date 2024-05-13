@@ -98,9 +98,10 @@ def crunch_numbers() -> None:
         latex_headers.append(latex_headers.pop(1))
         latex_df = latex_df[latex_headers]
 
-        print(latex_df.round(3).to_latex(index=False))
+        # print(latex_df.round(3).to_latex(index=False))
 
         names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
+        names_to_colors['Random'] = 'cyan'
 
         names, sums = [tup[0] for tup in profit_with_names], [tup[1] for tup in profit_with_names]
         bar_colors = [names_to_colors[name] for name in names]

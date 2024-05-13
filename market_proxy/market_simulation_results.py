@@ -5,6 +5,7 @@ from dataclasses import dataclass
 class MarketSimulationResults:
     reward: float
     day_fees: float
+    total_fees: float
     net_reward: float
     avg_pips_risked: float
     n_buys: int
@@ -21,9 +22,10 @@ class MarketSimulationResults:
     _curr_loss_streak: int
 
     # Helper function to update the simulation results once a trade closes out
-    def update_results(self, trade_amount: float, day_fees: float) -> None:
+    def update_results(self, trade_amount: float, day_fees: float, total_fees: float) -> None:
         self.reward += trade_amount
         self.day_fees += day_fees
+        self.total_fees += total_fees
         self.net_reward += trade_amount + day_fees
         self.account_balance += trade_amount + day_fees
         self.lowest_account_balance = min(self.lowest_account_balance, self.account_balance)
@@ -42,4 +44,4 @@ class MarketSimulationResults:
                f'\nlongest loss streak = {self.longest_loss_streak}\nstarting account balance = ' \
                f'{self.starting_account_balance}\nlowest account balance = ' \
                f'{self.lowest_account_balance}\nhighest account balance = {self.highest_account_balance}\n' \
-               f'final account balance = {self.account_balance}'
+               f'final account balance = {self.account_balance}\ntotal fees = {self.total_fees}'

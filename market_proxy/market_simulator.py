@@ -18,7 +18,8 @@ class MarketSimulator(object):
                        train_aat: bool = False,
                        metrics_tracker: Optional[MetricsTracker] = None) -> MarketSimulationResults:
         # Numerical results we keep track of
-        simulation_results = MarketSimulationResults(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, starting_balance, starting_balance,
+        simulation_results = MarketSimulationResults(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, starting_balance,
+                                                     starting_balance,
                                                      starting_balance, starting_balance, 0, 0)
         pips_risked, curr_trade = [], None
         i = strategy.starting_idx
@@ -43,12 +44,14 @@ class MarketSimulator(object):
                 curr_bid_open, curr_bid_high, curr_bid_low, curr_ask_open, curr_ask_high, curr_ask_low, curr_mid_open, \
                 curr_date = market_data.loc[market_data.index[j], ['Bid_Open', 'Bid_High', 'Bid_Low', 'Ask_Open',
                                                                    'Ask_High', 'Ask_Low', 'Mid_Open', 'Date']]
+                curr_bid_close, curr_ask_close = market_data.loc[market_data.index[j], ['Bid_Close', 'Ask_Close']]
+                curr_spread = abs(curr_bid_open - curr_ask_open)
 
                 # Condition 1 - trade is a buy and the stop loss is hit
                 if trade.trade_type == TradeType.BUY and curr_bid_low <= trade.stop_loss:
                     trade_amount = (trade.stop_loss - trade.open_price) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
-                    simulation_results.update_results(trade_amount, day_fees)
+                    simulation_results.update_results(trade_amount, day_fees, day_fees - curr_spread * trade.n_units)
                     strategy.trade_finished(trade_amount + day_fees)
                     profit = trade_amount + day_fees
 
@@ -71,7 +74,7 @@ class MarketSimulator(object):
                         curr_bid_high >= trade.stop_gain:
                     trade_amount = (trade.stop_gain - trade.open_price) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
-                    simulation_results.update_results(trade_amount, day_fees)
+                    simulation_results.update_results(trade_amount, day_fees, day_fees - curr_spread * trade.n_units)
                     strategy.trade_finished(trade_amount + day_fees)
                     profit = trade_amount + day_fees
 
@@ -93,7 +96,7 @@ class MarketSimulator(object):
                 if trade.trade_type == TradeType.SELL and curr_ask_high >= trade.stop_loss:
                     trade_amount = (trade.open_price - trade.stop_loss) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
-                    simulation_results.update_results(trade_amount, day_fees)
+                    simulation_results.update_results(trade_amount, day_fees, day_fees - curr_spread * trade.n_units)
                     strategy.trade_finished(trade_amount + day_fees)
                     profit = trade_amount + day_fees
 
@@ -116,7 +119,7 @@ class MarketSimulator(object):
                         curr_ask_low <= trade.stop_gain:
                     trade_amount = (trade.open_price - trade.stop_gain) * trade.n_units
                     day_fees = MarketCalculations.calculate_day_fees(trade, currency_pair, curr_date)
-                    simulation_results.update_results(trade_amount, day_fees)
+                    simulation_results.update_results(trade_amount, day_fees, day_fees - curr_spread * trade.n_units)
                     strategy.trade_finished(trade_amount + day_fees)
                     profit = trade_amount + day_fees
 

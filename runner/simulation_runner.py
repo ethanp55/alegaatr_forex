@@ -24,7 +24,7 @@ class SimulationRunner(object):
             metrics_tracker.increment_profitable_testing(strategy.name, currency_pair, time_frame, year, True)
             metrics_tracker.update_final_balance(strategy.name, currency_pair, time_frame, year, 10000.0)
 
-            return MarketSimulationResults(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            return MarketSimulationResults(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
         return MarketSimulator.run_simulation(strategy, market_data_raw, strategy_data_raw, currency_pair, time_frame,
                                               year, train_aat=train_aat, metrics_tracker=metrics_tracker)
