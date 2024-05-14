@@ -180,7 +180,7 @@ def create_plots() -> None:
         }
 
         # Add text annotation with correlation coefficient (rounded to 2 decimals)
-        plt.figure(figsize=(9, 3))
+        plt.figure(figsize=(5, 3))
         plt.text(0.175, 0.175, f"r = {correlation:.2f}", ha='center', transform=plt.gca().transAxes,
                  fontsize=16, fontweight='bold')
         plt.grid()
@@ -196,24 +196,25 @@ def create_plots() -> None:
             plt.scatter([], [], c=color, label=label)
 
         plt.legend(loc='best')
-        plt.text(strategies_n_trades['Random'] - 100,
+        plt.text(strategies_n_trades['Random'] - 200,
                  sum(strategies_profits['Random']) / len(strategies_profits['Random']),
                  'Random - 0.33', fontsize=10, ha='right')
-        plt.text(strategies_n_trades['Random2'] - 100,
+        plt.text(strategies_n_trades['Random2'] - 200,
                  sum(strategies_profits['Random2']) / len(strategies_profits['Random2']),
                  'Random - 0.2', fontsize=10, ha='right')
-        plt.text(strategies_n_trades['Random05'] - 100,
-                 sum(strategies_profits['Random05']) / len(strategies_profits['Random05']),
+        plt.text(strategies_n_trades['Random05'] - 200,
+                 (sum(strategies_profits['Random05']) / len(strategies_profits['Random05']) - 75),
                  'Random - 0.05', fontsize=10, ha='right')
-        plt.text(strategies_n_trades['Random01'] - 400,
-                 sum(strategies_profits['Random01']) / len(strategies_profits['Random01']),
+        plt.text(strategies_n_trades['Random01'] - 220,
+                 (sum(strategies_profits['Random01']) / len(strategies_profits['Random01']) - 125),
                  'Random - 0.01', fontsize=10, ha='right')
-        plt.text(strategies_n_trades['Random001'] + 3000,
+        plt.text(strategies_n_trades['Random001'] + 5500,
                  sum(strategies_profits['Random001']) / len(strategies_profits['Random001']),
                  'Random - 0.001', fontsize=10, ha='right')
         plt.xlabel('Number of Trades', fontsize=22, fontweight='bold')
-        plt.ylabel('Amount', fontsize=22, fontweight='bold')
-        plt.xticks(fontsize=16)
+        plt.ylabel('Profit', fontsize=22, fontweight='bold')
+        plt.xticks(ticks=[0, 0, 2000, 4000, 6000, 8000, 10000, 12000, 14000, 16000],
+                   labels=['', '0', '', '4000', '', '8000', '', '12000', '', '16000'], fontsize=16)
         plt.yticks(fontsize=16)
         plt.savefig(f'../experiments/plots/report/n_trades_profit_corr', bbox_inches='tight')
         plt.clf()
