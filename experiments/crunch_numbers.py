@@ -10,6 +10,7 @@ def crunch_numbers() -> None:
     def total_profit() -> None:
         all_profits, recent_two_profits, m30_profits, h1_profits, h4_profits = {}, {}, {}, {}, {}
         all_profit_sums, m30_profit_sums, h1_profit_sums, h4_profit_sums = {}, {}, {}, {}
+        eur_usd_profits, usd_jpy_profits, gbp_chf_profits = {}, {}, {}
         directory = '../experiments/results/final_balances_csv/'
         file_list = os.listdir(directory)
 
@@ -44,6 +45,15 @@ def crunch_numbers() -> None:
                 if '2021' in file_name or '2022' in file_name:
                     recent_two_profits[strategy] = recent_two_profits.get(strategy, []) + [profit]
 
+                if 'Eur_Usd' in file_name:
+                    eur_usd_profits[strategy] = eur_usd_profits.get(strategy, []) + [profit]
+
+                elif 'Usd_Jpy' in file_name:
+                    usd_jpy_profits[strategy] = usd_jpy_profits.get(strategy, []) + [profit]
+
+                else:
+                    gbp_chf_profits[strategy] = gbp_chf_profits.get(strategy, []) + [profit]
+
             for pair_time_frame in results_by_pair_time_frame.keys():
                 if pair_time_frame in file_name:
                     for strategy in df.columns[1:]:
@@ -53,10 +63,13 @@ def crunch_numbers() -> None:
                                                                                                          []) + [profit]
 
         # Create tuples for each strategy and profit sum
-        profit_with_names = [(strategy, profit) for strategy, profit in all_profit_sums.items()]
-        m30_with_names = [(strategy, profit) for strategy, profit in m30_profit_sums.items()]
-        h1_with_names = [(strategy, profit) for strategy, profit in h1_profit_sums.items()]
-        h4_with_names = [(strategy, profit) for strategy, profit in h4_profit_sums.items()]
+        profit_with_names = [(strategy, np.array(profit).mean()) for strategy, profit in all_profits.items()]
+        m30_with_names = [(strategy, np.array(profit).mean()) for strategy, profit in m30_profits.items()]
+        h1_with_names = [(strategy, np.array(profit).mean()) for strategy, profit in h1_profits.items()]
+        h4_with_names = [(strategy, np.array(profit).mean()) for strategy, profit in h4_profits.items()]
+        eur_usd_with_names = [(strategy, np.array(profit).mean()) for strategy, profit in eur_usd_profits.items()]
+        usd_jpy_with_names = [(strategy, np.array(profit).mean()) for strategy, profit in usd_jpy_profits.items()]
+        gbp_chf_with_names = [(strategy, np.array(profit).mean()) for strategy, profit in gbp_chf_profits.items()]
 
         # Sort the results so that the most profitable results are first
         profit_with_names.sort(key=lambda x: x[1], reverse=True)
@@ -65,17 +78,21 @@ def crunch_numbers() -> None:
         h4_with_names.sort(key=lambda x: x[1], reverse=True)
 
         # Print the profit averages and print latex table (for the paper)
-        total_avg = 0
+        total_avg, total_se = 0, 0
         latex_data, latex_headers = {}, ['Strategy', 'Overall']
         print('PROFIT AVERAGES ACROSS EVERY CATEGORY')
 
-        for strategy, profit in profit_with_names:
-            avg = profit / 10
+        for strategy, avg in profit_with_names:
             print(f'{strategy}\'s average profit: {avg}')
             total_avg += avg
             latex_data[strategy] = [avg]
+            profits = np.array(all_profits[strategy])
+            se = profits.std() / len(profits) ** 0.5
+            print(f'{strategy}\'s standard error: {round(se)}')
+            total_se += se
 
-        print(f'AVERAGE PROFIT AVG: {total_avg / len(profit_with_names)}\n')
+        print(f'AVERAGE PROFIT AVG: {total_avg / len(profit_with_names)}')
+        print(f'AVERAGE PROFIT SE: {total_se / len(profit_with_names)}\n')
 
         for time_frame in TIME_FRAMES:
             latex_headers.append(time_frame)
@@ -85,8 +102,22 @@ def crunch_numbers() -> None:
 
             print(f'PROFIT AVERAGES FOR {time_frame}:')
 
-            for strategy, profit in sum_to_print:
-                avg = profit / 10
+            for strategy, avg in sum_to_print:
+                print(f'{strategy}\'s average profit: {avg}')
+                total_avg += avg
+                latex_data[strategy] += [avg]
+
+            print(f'AVERAGE PROFIT AVG: {total_avg / len(sum_to_print)}\n')
+
+        for currency_pair in CURRENCY_PAIRS:
+            latex_headers.append(currency_pair)
+            total_avg, curr_row = 0, []
+            sum_to_print = eur_usd_with_names if currency_pair == 'Eur_Usd' else (
+                usd_jpy_with_names if currency_pair == 'Usd_Jpy' else gbp_chf_with_names)
+
+            print(f'PROFIT AVERAGES FOR {currency_pair}:')
+
+            for strategy, avg in sum_to_print:
                 print(f'{strategy}\'s average profit: {avg}')
                 total_avg += avg
                 latex_data[strategy] += [avg]
@@ -98,7 +129,7 @@ def crunch_numbers() -> None:
         latex_headers.append(latex_headers.pop(1))
         latex_df = latex_df[latex_headers]
 
-        print(latex_df.round(3).to_latex(index=False))
+        print(latex_df.to_latex(index=False, float_format=lambda x: '{:.0f}'.format(round(x))))
 
         names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
 
