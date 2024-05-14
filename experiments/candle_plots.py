@@ -46,11 +46,13 @@ def overlapping_line_plots() -> None:
             # Plot
             year_closes = joined_data['Mid_Close_x']
             prev_year_closes = joined_data['Mid_Close_y']
+            plt.figure(figsize=(5, 3))
             plt.plot(prev_year_closes, label=f'{year - 1} Closes', color='blue')
             plt.plot(year_closes, label=f'{year} Closes', color='orange')
-            plt.xlabel('Time Step')
-            plt.ylabel('Price')
-            plt.title(f'{currency_pair} H4 {year - 1} vs. {year} Mid Closes')
+            plt.xlabel('Time Step', fontsize=22, fontweight='bold')
+            plt.ylabel('Price', fontsize=22, fontweight='bold')
+            plt.xticks(fontsize=16)
+            plt.yticks(fontsize=16)
             plt.legend(loc='upper right')
             plt.savefig(f'../experiments/plots/candle_plots/{currency_pair}_H4_{year - 1}_vs_{year}',
                         bbox_inches='tight')
