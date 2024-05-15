@@ -1,30 +1,30 @@
 from experiments.metrics_tracker import MetricsTracker
 from runner.simulation_runner import SimulationRunner
-# from strategies.alegaatr import AlegAATr
-# from strategies.bar_movement import BarMovement
-# from strategies.beep_boop import BeepBoop
-# from strategies.bollinger_bands import BollingerBands
-# from strategies.choc import Choc
-# from strategies.cnn import CNNStrategy
-# from strategies.ensemble import Ensemble
-# from strategies.eee import EEE
-# from strategies.exp3 import EXP3
-# from strategies.keltner_channels import KeltnerChannels
-# from strategies.knn import KNNStrategy
-# from strategies.lstm import LstmStrategy
+from strategies.alegaatr import AlegAATr
+from strategies.bar_movement import BarMovement
+from strategies.beep_boop import BeepBoop
+from strategies.bollinger_bands import BollingerBands
+from strategies.choc import Choc
+from strategies.cnn import CNNStrategy
+from strategies.ensemble import Ensemble
+from strategies.eee import EEE
+from strategies.exp3 import EXP3
+from strategies.keltner_channels import KeltnerChannels
+from strategies.knn import KNNStrategy
+from strategies.lstm import LstmStrategy
 from strategies.lstm_mixture import LstmMixtureStrategy
-# from strategies.ma_crossover import MACrossover
-# from strategies.macd import MACD
-# from strategies.macd_key_level import MACDKeyLevel
-# from strategies.macd_stochastic import MACDStochastic
-# from strategies.mlp import MLPStrategy
-# from strategies.psar import PSAR
-# from strategies.random_forest import RandomForestStrategy
-# from strategies.rsi import RSI
-# from strategies.squeeze_pro import SqueezePro
-# from strategies.stochastic import Stochastic
-# from strategies.supertrend import Supertrend
-# from strategies.ucb import UCB
+from strategies.ma_crossover import MACrossover
+from strategies.macd import MACD
+from strategies.macd_key_level import MACDKeyLevel
+from strategies.macd_stochastic import MACDStochastic
+from strategies.mlp import MLPStrategy
+from strategies.psar import PSAR
+from strategies.random_forest import RandomForestStrategy
+from strategies.rsi import RSI
+from strategies.squeeze_pro import SqueezePro
+from strategies.stochastic import Stochastic
+from strategies.supertrend import Supertrend
+from strategies.ucb import UCB
 from utils.utils import CURRENCY_PAIRS, N_BANDIT_RUNS, TIME_FRAMES, YEARS
 
 
@@ -40,10 +40,9 @@ def test_strategies() -> None:
             for year in YEARS[2:]:
                 for _ in range(N_BANDIT_RUNS):
                     # List of all of the regular strategies
-                    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
-                    #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                    #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
-                    strategies = []
+                    strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
+                                  MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
+                                  Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
 
                     pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                     pair_time_frame_year_models_str = f'{currency_pair}_{time_frame}_{year - 1}'
@@ -59,11 +58,10 @@ def test_strategies() -> None:
                     rf_model_name = f'RandomForest_{pair_time_frame_year_models_str}'
 
                     # List of ML strategies
-                    # ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name),
-                    #                  LstmStrategy(lstm_model_name),
-                    #                  LstmMixtureStrategy(lstm_mixture_model_name), MLPStrategy(mlp_model_name),
-                    #                  RandomForestStrategy(rf_model_name)]
-                    ml_strategies = [LstmMixtureStrategy(lstm_mixture_model_name)]
+                    ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name),
+                                     LstmStrategy(lstm_model_name),
+                                     LstmMixtureStrategy(lstm_mixture_model_name), MLPStrategy(mlp_model_name),
+                                     RandomForestStrategy(rf_model_name)]
 
                     # List of all the strategies
                     all_strategies = strategies + ml_strategies
@@ -104,7 +102,3 @@ def test_strategies() -> None:
 
 if __name__ == "__main__":
     test_strategies()
-
-# For AlegAATr:
-#   - Track prediction values when they end up being wrong (might be useful to see how far off they are)
-#   - Track prediction values when they end up being correct

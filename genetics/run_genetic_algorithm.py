@@ -30,30 +30,21 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 
 
 def optimize_genomes() -> None:
-    # genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
-    #                 KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
-    #                 RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
-    #                 RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome, UCBGenome, EXP3Genome,
-    #                 EEEGenome, LstmMixtureGenome]
-    # genome_types = [LstmGenome, LstmMixtureGenome, CNNGenome, RandomForestGenome, KNNGenome, MLPGenome]
-    genome_types = [LstmMixtureGenome]
+    # Probably not a good idea to run all of these at the same time
+    genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
+                    KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
+                    RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
+                    RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome, UCBGenome, EXP3Genome,
+                    EEEGenome, LstmMixtureGenome]
 
-    for genome_type in genome_types:
-        for currency_pair in CURRENCY_PAIRS:
-            for time_frame in TIME_FRAMES:
-                for year in YEARS[1:-1]:
-                    GeneticAlgorithm.run(genome_type, currency_pair, time_frame, year, n_iterations=4,
-                                         population_size=4)
-
-    # for currency_pair in CURRENCY_PAIRS:
-    #     for time_frame in TIME_FRAMES:
-    #         for year in YEARS[1:-1]:
-    #             # Creates a new process for each genome type
-    #             pool = Pool(processes=len(genome_types))
-    #             pool.map(
-    #                 partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, year=year,
-    #                         population_size=4, n_iterations=10),
-    #                 genome_types)
+    for currency_pair in CURRENCY_PAIRS:
+        for time_frame in TIME_FRAMES:
+            for year in YEARS[1:-1]:
+                # Creates a new process for each genome type
+                pool = Pool(processes=len(genome_types))
+                pool.map(
+                    partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, year=year),
+                    genome_types)
 
 
 if __name__ == "__main__":
