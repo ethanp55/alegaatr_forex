@@ -30,6 +30,7 @@ from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
 
 def optimize_genomes() -> None:
+    # Probably don't want to run all of these at the same time
     genome_types = [MACDGenome, SqueezeProGenome, BarMovementGenome, BollingerBandsGenome, ChocGenome,
                     KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
                     RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
@@ -41,8 +42,7 @@ def optimize_genomes() -> None:
             # Creates a new process for each genome type
             pool = Pool(processes=len(genome_types))
             pool.map(
-                partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame, n_iterations=10,
-                        population_size=10),
+                partial(GeneticAlgorithm.run, currency_pair=currency_pair, time_frame=time_frame),
                 genome_types)
 
 

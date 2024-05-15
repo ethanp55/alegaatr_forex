@@ -40,10 +40,9 @@ def test_strategies() -> None:
             for year in YEARS:
                 for _ in range(N_BANDIT_RUNS):
                     # List of all of the regular strategies
-                    # strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
-                    #               MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
-                    #               Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
-                    strategies = []
+                    strategies = [BarMovement(), BeepBoop(), BollingerBands(), Choc(), KeltnerChannels(), MACrossover(),
+                                  MACD(), MACDKeyLevel(), MACDStochastic(), PSAR(), RSI(), SqueezePro(), Stochastic(),
+                                  Supertrend(), Ensemble(), AlegAATr(), UCB(), EXP3(), EEE()]
 
                     pair_time_frame_year_str = f'{currency_pair}_{time_frame}_{year}'
                     pair_time_frame_models_str = f'{currency_pair}_{time_frame}'
@@ -102,7 +101,3 @@ def test_strategies() -> None:
 
 if __name__ == "__main__":
     test_strategies()
-
-# For AlegAATr:
-#   - Track prediction values when they end up being wrong (might be useful to see how far off they are)
-#   - Track prediction values when they end up being correct

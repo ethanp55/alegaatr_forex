@@ -91,7 +91,7 @@ class LstmMixtureNetwork(TfModel):
 
 
 class LstmMixture(Model):
-    def __init__(self, name: str, lstm_training_set_percentage=0.8, lookback=50) -> None:
+    def __init__(self, name: str, lstm_training_set_percentage=0.8, lookback=100) -> None:
         super().__init__(name)
         self.lstm_training_set_percentage = lstm_training_set_percentage
         self.lookback = lookback
