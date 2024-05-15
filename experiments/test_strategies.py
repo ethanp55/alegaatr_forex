@@ -114,7 +114,3 @@ def test_strategies() -> None:
 
 if __name__ == "__main__":
     test_strategies()
-
-# For AlegAATr:
-#   - Track prediction values when they end up being wrong (might be useful to see how far off they are)
-#   - Track prediction values when they end up being correct
