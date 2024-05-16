@@ -180,7 +180,7 @@ def create_plots() -> None:
         }
 
         # Add text annotation with correlation coefficient (rounded to 2 decimals)
-        plt.figure(figsize=(5, 3))
+        plt.figure(figsize=(10, 3))
         plt.text(0.175, 0.175, f"r = {correlation:.2f}", ha='center', transform=plt.gca().transAxes,
                  fontsize=16, fontweight='bold')
         plt.grid()
