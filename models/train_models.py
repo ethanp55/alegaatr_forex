@@ -5,6 +5,7 @@ from models.lstm import Lstm
 from models.lstm_mixture import LstmMixture
 from models.mlp import MLP
 from models.random_forest import RandomForest
+from models.transformer import TransformerModel
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES, YEARS
 
 
@@ -25,12 +26,15 @@ def train_models() -> None:
                 df_train = DataLoader.load_training_data(currency_pair, time_frame, year, pips_multiplier)
 
                 # Models we want to train
-                models = [Lstm(f'LSTM_{pair_time_frame_year_str}'),
-                          LstmMixture(f'LstmMixture_{pair_time_frame_year_str}'),
-                          CNN(f'CNN_{pair_time_frame_year_str}'),
-                          RandomForest(f'RandomForest_{pair_time_frame_year_str}'),
-                          KNN(f'KNN_{pair_time_frame_year_str}'),
-                          MLP(f'MLP_{pair_time_frame_year_str}')]
+                models = [
+                    Lstm(f'LSTM_{pair_time_frame_year_str}'),
+                    LstmMixture(f'LstmMixture_{pair_time_frame_year_str}'),
+                    CNN(f'CNN_{pair_time_frame_year_str}'),
+                    RandomForest(f'RandomForest_{pair_time_frame_year_str}'),
+                    KNN(f'KNN_{pair_time_frame_year_str}'),
+                    MLP(f'MLP_{pair_time_frame_year_str}'),
+                    TransformerModel(f'Transformer_{pair_time_frame_year_str}')
+                ]
 
                 # Train each model
                 for model in models:
