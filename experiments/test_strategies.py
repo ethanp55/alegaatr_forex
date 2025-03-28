@@ -24,6 +24,7 @@ from strategies.rsi import RSI
 from strategies.squeeze_pro import SqueezePro
 from strategies.stochastic import Stochastic
 from strategies.supertrend import Supertrend
+from strategies.transformer import TransformerStrategy
 from strategies.ucb import UCB
 from utils.utils import CURRENCY_PAIRS, N_BANDIT_RUNS, TIME_FRAMES, YEARS
 
@@ -56,12 +57,13 @@ def test_strategies() -> None:
                     lstm_mixture_model_name = f'LstmMixture_{pair_time_frame_year_models_str}'
                     mlp_model_name = f'MLP_{pair_time_frame_year_models_str}'
                     rf_model_name = f'RandomForest_{pair_time_frame_year_models_str}'
+                    transformer_model_name = f'Transformer_{pair_time_frame_year_models_str}'
 
                     # List of ML strategies
                     ml_strategies = [CNNStrategy(cnn_model_name), KNNStrategy(knn_model_name),
                                      LstmStrategy(lstm_model_name),
                                      LstmMixtureStrategy(lstm_mixture_model_name), MLPStrategy(mlp_model_name),
-                                     RandomForestStrategy(rf_model_name)]
+                                     RandomForestStrategy(rf_model_name), TransformerStrategy(transformer_model_name)]
 
                     # List of all the strategies
                     all_strategies = strategies + ml_strategies

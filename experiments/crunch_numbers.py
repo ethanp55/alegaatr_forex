@@ -129,7 +129,7 @@ def crunch_numbers() -> None:
         latex_headers.append(latex_headers.pop(1))
         latex_df = latex_df[latex_headers]
 
-        print(latex_df.to_latex(index=False, float_format=lambda x: '{:.0f}'.format(round(x))))
+        # print(latex_df.to_latex(index=False, float_format=lambda x: '{:.0f}'.format(round(x))))
 
         names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
 

@@ -74,16 +74,25 @@ def create_plots() -> None:
                                           (pair_time_year_str in file_name and 'final_balances' in file_name)]
 
                     final_balances, strategy_names, max_len = [], [], 0
+                    colors = ['#a6611a', '#dfc27d', '#80cdc1', '#018571', '#d01c8b', '#f1b6da', '#b8e186', '#4dac26',
+                              '#7b3294', '#c2a5cf', '#a6dba0', '#008837', '#e66101', '#fdb863', '#b2abd2', '#5e3c99',
+                              '#ca0020', '#f4a582', '#92c5de', '#0571b0', '#bababa', '#d7191c', '#fdae61', '#ffffbf',
+                              '#abd9e9', '#2c7bb6', '#a6d96a']
+                    names_to_colors = {}
 
-                    for file_name in filtered_file_list:
+                    for i, file_name in enumerate(filtered_file_list):
                         strategy_name = file_name.split('_')[0]
                         final_balance = pickle.load(open(f'../experiments/results/{file_name}', 'rb'))
 
                         strategy_names.append(strategy_name)
                         final_balances.append(final_balance)
 
+                        names_to_colors[strategy_name] = colors[i]
+
                     # Bar graph containing final balances for each strategy
-                    names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
+                    # names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
+                    with open('./plots/color_mappings.pickle', 'wb') as f:
+                        pickle.dump(names_to_colors, f)
                     bar_colors = [names_to_colors[name] for name in strategy_names]
                     plt.grid()
                     plt.bar(strategy_names, final_balances, color=bar_colors)
