@@ -473,6 +473,41 @@ class TechnicalIndicators(object):
         return formatted_df
 
     @staticmethod
+    def format_data_for_transformer(df: pd.DataFrame) -> pd.DataFrame:
+        formatted_df = df.copy()
+
+        # Features
+        formatted_df['rsi'] = TechnicalIndicators.rsi(formatted_df['Mid_Close'])
+        formatted_df['rsi_sma'] = formatted_df['rsi'].rolling(50).mean()
+        formatted_df['adx'] = TechnicalIndicators.adx(formatted_df['Mid_High'], formatted_df['Mid_Low'],
+                                                      formatted_df['Mid_Close'])
+        formatted_df['chop'] = TechnicalIndicators.chop(formatted_df)
+        formatted_df['vo'] = TechnicalIndicators.vo(formatted_df['Volume'])
+        formatted_df['qqe_up'], formatted_df['qqe_down'], formatted_df['qqe_val'] = \
+            TechnicalIndicators.qqe_mod(formatted_df['Mid_Close'])
+        formatted_df['rsi_up'] = formatted_df['rsi'] > formatted_df['rsi_sma']
+        formatted_df['adx_large'] = formatted_df['adx'] > 30
+        formatted_df['chop_small'] = formatted_df['chop'] < 0.5
+        formatted_df['vo_positive'] = formatted_df['vo'] > 0
+        formatted_df['squeeze_on'] = TechnicalIndicators.squeeze(formatted_df)
+        formatted_df['macd'] = pd.Series.ewm(formatted_df['Mid_Close'], span=12).mean() - \
+                               pd.Series.ewm(formatted_df['Mid_Close'], span=26).mean()
+        formatted_df['macdsignal'] = pd.Series.ewm(formatted_df['macd'], span=9).mean()
+
+        # Time
+        formatted_df['day'] = formatted_df['Date'].dt.day
+        formatted_df['hour'] = formatted_df['Date'].dt.hour
+        formatted_df['minute'] = formatted_df['Date'].dt.minute
+
+        formatted_df.dropna(inplace=True)
+        formatted_df.reset_index(drop=True, inplace=True)
+
+        formatted_df.drop(['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low',
+                           'Ask_Close', 'Mid_Open', 'Mid_High', 'Mid_Low', 'Mid_Close', 'Volume'], axis=1, inplace=True)
+
+        return formatted_df
+
+    @staticmethod
     def format_for_all_possible_strategies(df: pd.DataFrame) -> pd.DataFrame:
         formatted_df = df.copy()
         formatted_df['atr'] = TechnicalIndicators.atr(formatted_df['Mid_High'], formatted_df['Mid_Low'],
@@ -528,6 +563,9 @@ class TechnicalIndicators(object):
         formatted_df['n_macd'], formatted_df['n_macdsignal'] = TechnicalIndicators.n_macd(formatted_df)
         formatted_df['impulse_macd'], formatted_df['impulse_macdsignal'] = TechnicalIndicators.impulse_macd(
             formatted_df['Mid_High'], formatted_df['Mid_Low'], formatted_df['Mid_Close'])
+        formatted_df['day'] = formatted_df['Date'].dt.day
+        formatted_df['hour'] = formatted_df['Date'].dt.hour
+        formatted_df['minute'] = formatted_df['Date'].dt.minute
 
         formatted_df.dropna(inplace=True)
         formatted_df.reset_index(drop=True, inplace=True)
