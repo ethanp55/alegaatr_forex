@@ -24,6 +24,7 @@ from genetics.rsi_genome import RSIGenome
 from genetics.squeeze_pro_genome import SqueezeProGenome
 from genetics.stochastic_genome import StochasticGenome
 from genetics.supertrend_genome import SupertrendGenome
+from genetics.transformer_genome import TransformerGenome
 from genetics.ucb_genome import UCBGenome
 from multiprocessing import Pool
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
@@ -35,7 +36,7 @@ def optimize_genomes() -> None:
                     KeltnerChannelsGenome, MACrossoverGenome, MACDKeyLevelGenome, MACDStochasticGenome, PSARGenome,
                     RSIGenome, StochasticGenome, SupertrendGenome, BeepBoopGenome, KNNGenome, MLPGenome,
                     RandomForestGenome, CNNGenome, LstmGenome, EnsembleGenome, AlegAATrGenome, UCBGenome, EXP3Genome,
-                    EEEGenome, LstmMixtureGenome]
+                    EEEGenome, LstmMixtureGenome, TransformerGenome]
 
     for currency_pair in CURRENCY_PAIRS:
         for time_frame in TIME_FRAMES:
