@@ -168,7 +168,8 @@ def create_plots() -> None:
             'Random2': 'Random',
             'Random05': 'Random',
             'Random01': 'Random',
-            'Random001': 'Random'
+            'Random001': 'Random',
+            'Transformer': 'Price Forecaster'
         }
 
         class_to_color = {
