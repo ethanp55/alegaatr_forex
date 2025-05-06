@@ -5,6 +5,35 @@ import pandas as pd
 import pickle
 from utils.utils import CURRENCY_PAIRS, TIME_FRAMES
 
+names_conversion = {
+    'AlegAATr': 'Aleg',
+    'BarMovement': 'BM',
+    'BeepBoop': 'BBo',
+    'BollingerBands': 'BB',
+    'Choc': 'Choc',
+    'CNN': 'CNN',
+    'EEE': 'EEE',
+    'Ensemble': 'E',
+    'EXP3': 'EXP4',
+    'KeltnerChannels': 'KC',
+    'KNN': 'KNN',
+    'Lstm': 'LSTM',
+    'LstmMixture': 'LSTMM',
+    'MACrossover': 'MAC',
+    'MACD': 'MACD',
+    'MACDKeyLevel': 'MACDK',
+    'MACDStochastic': 'MACDS',
+    'MLP': 'MLP',
+    'PSAR': 'PSAR',
+    'RandomForest': 'RF',
+    'RSI': 'RSI',
+    'SqueezePro': 'SP',
+    'Stochastic': 'Stoch',
+    'Supertrend': 'Sup',
+    'Transformer': 'TranT',
+    'UCB': 'UCB'
+}
+
 
 def crunch_numbers() -> None:
     def total_profit() -> None:
@@ -134,13 +163,15 @@ def crunch_numbers() -> None:
         names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
 
         names, sums = [tup[0] for tup in profit_with_names], [tup[1] for tup in profit_with_names]
+        converted_names = [names_conversion[name] for name in names]
         bar_colors = [names_to_colors[name] for name in names]
+        plt.figure(figsize=(10, 3))
         plt.grid()
-        plt.bar(names, sums, color=bar_colors)
-        plt.xlabel('Strategy')
+        plt.bar(converted_names, sums, color=bar_colors)
+        plt.xlabel('Strategy', fontsize=22, fontweight='bold')
         plt.xticks(rotation=90)
-        plt.ylabel('Sum')
-        plt.title(f'Total Profit Sum')
+        plt.ylabel('Sum', fontsize=22, fontweight='bold')
+        # plt.title(f'Total Profit Sum')
         plt.savefig(f'../experiments/plots/report/profit_sums', bbox_inches='tight')
         plt.clf()
 
@@ -172,7 +203,7 @@ def crunch_numbers() -> None:
 
             print()
 
-        all_profs, names = [], []
+        all_profs, names, converted_names = [], [], []
 
         for strategy, profits in sorted(all_profits.items(), key=lambda item: sum(item[1]) / len(item[1]),
                                         reverse=True):
@@ -183,42 +214,46 @@ def crunch_numbers() -> None:
 
             all_profs.append(profits_array)
             names.append(strategy)
+            converted_names.append(names_conversion[strategy])
 
         avgs = [arry.mean() for arry in all_profs]
         bar_colors = [names_to_colors[name] for name in names]
+        plt.figure(figsize=(10, 3))
         plt.grid()
-        plt.bar(names, avgs, color=bar_colors)
-        plt.xlabel('Strategy')
+        plt.bar(converted_names, avgs, color=bar_colors)
+        plt.xlabel('Strategy', fontsize=22, fontweight='bold')
         plt.xticks(rotation=90)
-        plt.ylabel('Amount')
-        plt.title(f'Average Profit Amounts (Phase 2)')
+        plt.ylabel('Profit', fontsize=22, fontweight='bold')
+        # plt.title(f'Average Profit Amounts (Phase 2)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts', bbox_inches='tight')
         plt.clf()
 
         standard_errors = [arry.std() / len(arry) ** 0.5 for arry in all_profs]
         bar_colors = [names_to_colors[name] for name in names]
+        plt.figure(figsize=(10, 3))
         plt.grid()
-        plt.bar(names, avgs, yerr=standard_errors, color=bar_colors)
-        plt.xlabel('Strategy')
+        plt.bar(converted_names, avgs, yerr=standard_errors, color=bar_colors)
+        plt.xlabel('Strategy', fontsize=22, fontweight='bold')
         plt.xticks(rotation=90)
-        plt.ylabel('Amount')
-        plt.title(f'Average Profit Amounts (Phase 2)')
+        plt.ylabel('Profit', fontsize=22, fontweight='bold')
+        # plt.title(f'Average Profit Amounts (Phase 2)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_se', bbox_inches='tight')
         plt.clf()
 
         box_colors = [names_to_colors[name] for name in names]
+        plt.figure(figsize=(10, 3))
         plt.grid()
         bp = plt.boxplot(all_profs, patch_artist=True)
         for i in range(len(names)):
             bp['boxes'][i].set_facecolor(box_colors[i])
-        plt.xlabel('Strategy')
-        plt.xticks(list(range(1, len(names) + 1)), names, rotation=90)
-        plt.ylabel('Amount')
-        plt.title(f'Profit Amounts (Phase 2)')
+        plt.xlabel('Strategy', fontsize=22, fontweight='bold')
+        plt.xticks(list(range(1, len(names) + 1)), converted_names, rotation=90)
+        plt.ylabel('Profit', fontsize=22, fontweight='bold')
+        # plt.title(f'Profit Amounts (Phase 2)')
         plt.savefig(f'../experiments/plots/report/profit_amounts', bbox_inches='tight')
         plt.clf()
 
-        profits_averages, profits_ses, names = [], [], []
+        profits_averages, profits_ses, names, converted_names = [], [], [], []
 
         for strategy, profits in sorted(recent_two_profits.items(), key=lambda item: sum(item[1]) / len(item[1]),
                                         reverse=True):
@@ -227,24 +262,27 @@ def crunch_numbers() -> None:
             profits_averages.append(avg)
             profits_ses.append(sd / len(profits_array) ** 0.5)
             names.append(strategy)
+            converted_names.append(names_conversion[strategy])
 
         bar_colors = [names_to_colors[name] for name in names]
+        plt.figure(figsize=(10, 3))
         plt.grid()
-        plt.bar(names, profits_averages, color=bar_colors)
-        plt.xlabel('Strategy')
+        plt.bar(converted_names, profits_averages, color=bar_colors)
+        plt.xlabel('Strategy', fontsize=22, fontweight='bold')
         plt.xticks(rotation=90)
-        plt.ylabel('Amount')
-        plt.title(f'Average Profit Amounts (Phase 2)')
+        plt.ylabel('Profit', fontsize=22, fontweight='bold')
+        # plt.title(f'Average Profit Amounts (Phase 2)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_recent_two', bbox_inches='tight')
         plt.clf()
 
         bar_colors = [names_to_colors[name] for name in names]
+        plt.figure(figsize=(10, 3))
         plt.grid()
-        plt.bar(names, profits_averages, yerr=profits_ses, color=bar_colors)
-        plt.xlabel('Strategy')
+        plt.bar(converted_names, profits_averages, yerr=profits_ses, color=bar_colors)
+        plt.xlabel('Strategy', fontsize=22, fontweight='bold')
         plt.xticks(rotation=90)
-        plt.ylabel('Amount')
-        plt.title(f'Average Profit Amounts (Phase 2)')
+        plt.ylabel('Profit', fontsize=22, fontweight='bold')
+        # plt.title(f'Average Profit Amounts (Phase 2)')
         plt.savefig(f'../experiments/plots/report/avg_profit_amounts_with_se_recent_two', bbox_inches='tight')
         plt.clf()
 
