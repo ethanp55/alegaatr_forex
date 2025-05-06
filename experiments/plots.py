@@ -1,3 +1,4 @@
+from experiments.crunch_numbers import names_conversion
 import matplotlib.pyplot as plt
 import os
 import numpy as np
@@ -84,24 +85,38 @@ def create_plots() -> None:
                     # Sort by best performance
                     final_balances_with_names.sort(key=lambda x: x[1], reverse=True)
                     strategy_names = [tup[0] for tup in final_balances_with_names]
+                    converted_names = [names_conversion[name] for name in strategy_names]
                     final_balances = [tup[1] for tup in final_balances_with_names]
 
                     # Bar graph containing final balances for each strategy
                     names_to_colors = pickle.load(open('./plots/color_mappings.pickle', 'rb'))
                     bar_colors = [names_to_colors[name] for name in strategy_names]
                     plt.grid()
-                    plt.bar(strategy_names, final_balances, color=bar_colors)
+                    plt.bar(converted_names, final_balances, color=bar_colors)
                     plt.axhline(y=10000, color='black', linestyle='--')
-                    plt.xlabel('Strategy')
+                    plt.xlabel('Strategy', fontsize=22, fontweight='bold')
                     plt.xticks(rotation=90)
-                    plt.ylabel('Final Account Balance')
-                    plt.title(f'Final Account Balances on {pair_time_year_str}')
+                    plt.ylabel('Final Account Balance', fontsize=22, fontweight='bold')
+                    # plt.title(f'Final Account Balances on {pair_time_year_str}')
                     plt.savefig(f'../experiments/plots/{pair_time_year_str}_final_balances', bbox_inches='tight')
                     plt.clf()
 
                     # Export the final balances as a csv
                     df = pd.DataFrame([final_balances], columns=strategy_names)
                     df.to_csv(f'../experiments/results/final_balances_csv/{pair_time_year_str}_final_balances.csv')
+
+                    # Create special "sneak preview" plot
+                    if pair_time_year_str == 'Usd_Jpy_M30_2021':
+                        plt.figure(figsize=(10, 3))
+                        plt.grid()
+                        labels = ['Price Forecaster\nKNN', 'Trained Rule\nStochastic', 'Bandit\nEEE',
+                                  'Price Forecaster\nLSTM-Mixture', 'Trained Rule\nKeltner Channels']
+                        plt.bar(labels, final_balances[:5], color=bar_colors[:5])
+                        plt.axhline(y=10000, color='black', linestyle='--')
+                        plt.xlabel('Strategy', fontsize=14, fontweight='bold')
+                        plt.ylabel('Final Account Balance', fontsize=14, fontweight='bold')
+                        plt.savefig(f'../experiments/plots/report/sneak_preview', bbox_inches='tight')
+                        plt.clf()
 
     # Create plots of account value over time
     # _create_account_value_plots()
